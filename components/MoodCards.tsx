@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Image } from 'react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -20,6 +20,9 @@ interface MoodCard {
   color: string;
   gradient: string[];
   tips: string[];
+  image: any;
+  musicType: string;
+  foodType: string;
 }
 
 const moodCards: MoodCard[] = [
@@ -27,73 +30,97 @@ const moodCards: MoodCard[] = [
     id: '1',
     mood: 'Happy',
     emoji: '😊',
-    description: 'Feeling joyful and positive',
+    description: 'Upbeat music, celebration foods, positive vibes',
     color: '#ffd93d',
     gradient: ['#ffd93d', '#ff6b6b'],
-    tips: ['Share your joy', 'Try new activities', 'Connect with friends']
+    tips: ['Share your joy', 'Try new activities', 'Connect with friends'],
+    image: require('../img/happy.png'),
+    musicType: 'Upbeat music',
+    foodType: 'Celebration foods'
   },
   {
     id: '2',
     mood: 'Sad',
     emoji: '😢',
-    description: 'Feeling down or melancholic',
+    description: 'Comfort songs, warm foods, cozy places',
     color: '#74b9ff',
     gradient: ['#74b9ff', '#0984e3'],
-    tips: ['Take deep breaths', 'Listen to calming music', 'Talk to someone']
+    tips: ['Take deep breaths', 'Listen to calming music', 'Talk to someone'],
+    image: require('../img/sad.png'),
+    musicType: 'Comfort songs',
+    foodType: 'Warm foods'
   },
   {
     id: '3',
-    mood: 'Active',
-    emoji: '⚡',
-    description: 'Full of energy and motivation',
-    color: '#00b894',
-    gradient: ['#00b894', '#00cec9'],
-    tips: ['Exercise or dance', 'Start new projects', 'Be productive']
+    mood: 'Romantic',
+    emoji: '💕',
+    description: 'Love ballads, romantic dining, intimate settings',
+    color: '#fd79a8',
+    gradient: ['#fd79a8', '#e84393'],
+    tips: ['Plan romantic moments', 'Express your feelings', 'Create intimate atmosphere'],
+    image: require('../img/Romantic.png'),
+    musicType: 'Love ballads',
+    foodType: 'Romantic dining'
   },
   {
     id: '4',
-    mood: 'Relaxed',
-    emoji: '😌',
-    description: 'Calm and peaceful state',
+    mood: 'Tired',
+    emoji: '😴',
+    description: 'Relaxing sounds, energy foods, quick options',
     color: '#a29bfe',
     gradient: ['#a29bfe', '#6c5ce7'],
-    tips: ['Meditate', 'Read a book', 'Take a warm bath']
+    tips: ['Rest and recharge', 'Choose easy meals', 'Listen to calming music'],
+    image: require('../img/Tired.png'),
+    musicType: 'Relaxing sounds',
+    foodType: 'Energy foods'
   },
   {
     id: '5',
-    mood: 'Focused',
-    emoji: '🎯',
-    description: 'Concentrated and determined',
-    color: '#fd79a8',
-    gradient: ['#fd79a8', '#e84393'],
-    tips: ['Work on goals', 'Minimize distractions', 'Plan your day']
+    mood: 'Excited',
+    emoji: '🤩',
+    description: 'High energy music, power foods, active spaces',
+    color: '#ff7675',
+    gradient: ['#ff7675', '#d63031'],
+    tips: ['Channel your energy', 'Share excitement', 'Plan adventures'],
+    image: require('../img/Excited.png'),
+    musicType: 'High energy music',
+    foodType: 'Power foods'
   },
   {
     id: '6',
-    mood: 'Anxious',
-    emoji: '😰',
-    description: 'Feeling worried or stressed',
-    color: '#fdcb6e',
-    gradient: ['#fdcb6e', '#e17055'],
-    tips: ['Practice breathing', 'Ground yourself', 'Seek support']
+    mood: 'Lonely',
+    emoji: '😔',
+    description: 'Soulful music, comfort treats, peaceful places',
+    color: '#636e72',
+    gradient: ['#636e72', '#2d3436'],
+    tips: ['Connect with others', 'Practice self-care', 'Find peaceful moments'],
+    image: require('../img/Lonely.png'),
+    musicType: 'Soulful music',
+    foodType: 'Comfort treats'
   },
   {
     id: '7',
-    mood: 'Excited',
-    emoji: '🤩',
-    description: 'Enthusiastic and thrilled',
-    color: '#ff7675',
-    gradient: ['#ff7675', '#d63031'],
-    tips: ['Channel your energy', 'Share excitement', 'Plan adventures']
+    mood: 'Hungry',
+    emoji: '🤤',
+    description: 'Cooking playlists, satisfying meals, hearty portions',
+    color: '#00b894',
+    gradient: ['#00b894', '#00cec9'],
+    tips: ['Explore new recipes', 'Cook with music', 'Enjoy hearty meals'],
+    image: require('../img/Hungry.png'),
+    musicType: 'Cooking playlists',
+    foodType: 'Satisfying meals'
   },
   {
     id: '8',
-    mood: 'Thoughtful',
-    emoji: '🤔',
-    description: 'Reflective and contemplative',
-    color: '#636e72',
-    gradient: ['#636e72', '#2d3436'],
-    tips: ['Journal thoughts', 'Reflect on goals', 'Practice mindfulness']
+    mood: 'Moody',
+    emoji: '🎭',
+    description: 'Alternative music, mood-boosting foods, creative spaces',
+    color: '#fdcb6e',
+    gradient: ['#fdcb6e', '#e17055'],
+    tips: ['Express creativity', 'Try alternative music', 'Boost your mood'],
+    image: require('../img/Moody.png'),
+    musicType: 'Alternative music',
+    foodType: 'Mood-boosting foods'
   }
 ];
 
@@ -102,7 +129,7 @@ interface MoodCardsProps {
 }
 
 export default function MoodCards({ onMoodSelect }: MoodCardsProps) {
-  const { moodAnalysis } = useMood();
+  const { moodAnalysis, currentMoodAnalysis, setCurrentMoodAnalysis, analyzeMoodFromSelection, isAnalyzing } = useMood();
   const scrollX = useSharedValue(0);
   const scrollViewRef = useRef<ScrollView>(null);
   
@@ -122,14 +149,16 @@ export default function MoodCards({ onMoodSelect }: MoodCardsProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleMoodPress = (mood: MoodCard) => {
+  const handleMoodPress = async (mood: MoodCard) => {
+    // Trigger AI mood analysis
+    await analyzeMoodFromSelection(mood.mood);
     if (onMoodSelect) {
       onMoodSelect(mood);
     }
   };
 
   const renderMoodCard = (mood: MoodCard, index: number) => {
-    const isCurrentMood = mood.mood.toLowerCase() === currentMood.toLowerCase();
+    const isCurrentMood = currentMoodAnalysis?.dominantMood === mood.mood;
     
     const animatedStyle = useAnimatedStyle(() => {
       const inputRange = [
@@ -172,20 +201,31 @@ export default function MoodCards({ onMoodSelect }: MoodCardsProps) {
           activeOpacity={0.8}
         >
           <Animated.View style={[styles.cardContent, { backgroundColor: mood.gradient[0] }]}>
-            <Text style={styles.moodEmoji}>{mood.emoji}</Text>
-            <Text style={styles.moodName}>{mood.mood}</Text>
-            <Text style={styles.moodDescription}>{mood.description}</Text>
+            <View style={styles.imageContainer}>
+              <Image source={mood.image} style={styles.moodImage} resizeMode="contain" />
+              <Text style={styles.moodEmoji}>{mood.emoji}</Text>
+            </View>
             
-            {isCurrentMood && (
-              <View style={styles.currentBadge}>
-                <Text style={styles.currentBadgeText}>Current</Text>
+            <View style={styles.contentContainer}>
+              <Text style={styles.moodName}>{mood.mood}</Text>
+              <Text style={styles.moodDescription}>{mood.description}</Text>
+              
+              {isCurrentMood && (
+                <View style={styles.currentBadge}>
+                  <Text style={styles.currentBadgeText}>Current Mood</Text>
+                </View>
+              )}
+              
+              {isAnalyzing && (
+                <View style={styles.analyzingBadge}>
+                  <Text style={styles.analyzingText}>Analyzing...</Text>
+                </View>
+              )}
+              
+              <View style={styles.featuresContainer}>
+                <Text style={styles.featureText}>🎵 {mood.musicType}</Text>
+                <Text style={styles.featureText}>🍽️ {mood.foodType}</Text>
               </View>
-            )}
-            
-            <View style={styles.tipsContainer}>
-              {mood.tips.slice(0, 2).map((tip, tipIndex) => (
-                <Text key={tipIndex} style={styles.tipText}>• {tip}</Text>
-              ))}
             </View>
           </Animated.View>
         </TouchableOpacity>
@@ -268,32 +308,45 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     padding: 16,
-    height: 200,
+    height: 240,
     justifyContent: 'space-between',
   },
-  moodEmoji: {
-    fontSize: 32,
-    textAlign: 'center',
+  imageContainer: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  moodImage: {
+    width: 60,
+    height: 60,
     marginBottom: 8,
   },
+  moodEmoji: {
+    fontSize: 24,
+    textAlign: 'center',
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
   moodName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#ffffff',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   moodDescription: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#ffffff90',
     textAlign: 'center',
     marginBottom: 12,
+    lineHeight: 16,
   },
   currentBadge: {
     backgroundColor: '#ffd93d',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 15,
     alignSelf: 'center',
     marginBottom: 8,
   },
@@ -302,12 +355,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
   },
-  tipsContainer: {
+  analyzingBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 15,
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+  analyzingText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  featuresContainer: {
     marginTop: 'auto',
   },
-  tipText: {
+  featureText: {
     fontSize: 10,
     color: '#ffffff80',
-    marginBottom: 2,
+    marginBottom: 3,
+    textAlign: 'center',
   },
 });

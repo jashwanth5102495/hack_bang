@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Music, ArrowLeft, Play, Users } from 'lucide-react-native';
+import { Music, ArrowLeft, Play, Users, Brain, Clock } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInLeft } from 'react-native-reanimated';
+import { useMood } from '../contexts/MoodContext';
 
 const { width } = Dimensions.get('window');
 
@@ -28,6 +29,7 @@ const moodContent = {
 
 export default function MoodResultsScreen() {
   const { mood, selectedMoods } = useLocalSearchParams();
+  const { currentMoodAnalysis } = useMood();
   const moodData = moodContent[mood as keyof typeof moodContent] || moodContent.happy;
 
   return (
@@ -52,6 +54,28 @@ export default function MoodResultsScreen() {
           <Text style={styles.subtitle}>
             Here's what we recommend for your current mood
           </Text>
+          
+          {currentMoodAnalysis && (
+            <View style={styles.analysisCard}>
+              <View style={styles.analysisHeader}>
+                <Brain size={20} color="#8b5cf6" />
+                <Text style={styles.analysisTitle}>AI Analysis Results</Text>
+              </View>
+              <View style={styles.analysisDetails}>
+                <Text style={styles.analysisText}>
+                  Confidence: {Math.round((currentMoodAnalysis.confidence || 0.85) * 100)}%
+                </Text>
+                {currentMoodAnalysis.timestamp && (
+                  <View style={styles.timestampContainer}>
+                    <Clock size={14} color="#a1a1aa" />
+                    <Text style={styles.timestampText}>
+                      Analyzed at {new Date(currentMoodAnalysis.timestamp).toLocaleString()}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          )}
         </Animated.View>
 
         <Animated.View 
@@ -145,6 +169,43 @@ const styles = StyleSheet.create({
     color: '#a1a1aa',
     textAlign: 'center',
     paddingHorizontal: 20,
+  },
+  analysisCard: {
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.2)',
+  },
+  analysisHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  analysisTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#8b5cf6',
+  },
+  analysisDetails: {
+    gap: 8,
+  },
+  analysisText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#ffffff',
+  },
+  timestampContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  timestampText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#a1a1aa',
   },
   section: {
     marginBottom: 32,

@@ -13,9 +13,9 @@ import { useMood } from '../../contexts/MoodContext';
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  const { moodAnalysis, getMusicRecommendations, setMoodAnalysis } = useMood();
+  const { currentMoodAnalysis, getMusicRecommendations, setMoodAnalysis } = useMood();
   
-  const currentMood = moodAnalysis?.dominantMood || 'Unknown';
+  const currentMood = currentMoodAnalysis?.dominantMood || 'Unknown';
   const musicRecommendations = getMusicRecommendations();
 
   const handleMoodSelect = (mood: any) => {
@@ -92,6 +92,19 @@ export default function HomeScreen() {
               <Zap size={16} color="#3b82f6" />
               <Text style={styles.moodText}>Current mood: {currentMood}</Text>
             </LinearGradient>
+            
+            {currentMoodAnalysis && (
+              <View style={styles.moodDetailsContainer}>
+                <Text style={styles.moodDetailsText}>
+                  Confidence: {Math.round((currentMoodAnalysis.confidence || 0.85) * 100)}%
+                </Text>
+                {currentMoodAnalysis.timestamp && (
+                  <Text style={styles.moodTimestamp}>
+                    Analyzed {new Date(currentMoodAnalysis.timestamp).toLocaleTimeString()}
+                  </Text>
+                )}
+              </View>
+            )}
           </View>
         </Animated.View>
 
@@ -238,6 +251,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: '#3b82f6',
+  },
+  moodDetailsContainer: {
+    marginTop: 12,
+    alignItems: 'flex-start',
+  },
+  moodDetailsText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#a1a1aa',
+    marginBottom: 4,
+  },
+  moodTimestamp: {
+    fontSize: 11,
+    fontFamily: 'Inter-Regular',
+    color: '#71717a',
   },
   statsContainer: {
     marginBottom: 32,

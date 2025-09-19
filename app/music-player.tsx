@@ -36,73 +36,73 @@ const moodPlaylists = {
     name: 'Love Ballads',
     color: ['#ec4899', '#be185d'],
     songs: [
-      { id: 11, title: 'Perfect', artist: 'Ed Sheeran', duration: '4:23', isPlaying: false },
-      { id: 12, title: 'All of Me', artist: 'John Legend', duration: '4:29', isPlaying: false },
-      { id: 13, title: 'Thinking Out Loud', artist: 'Ed Sheeran', duration: '4:41', isPlaying: false },
-      { id: 14, title: 'Make You Feel My Love', artist: 'Adele', duration: '3:32', isPlaying: false },
-      { id: 15, title: 'At Last', artist: 'Etta James', duration: '3:01', isPlaying: false },
+      { id: 11, title: 'Perfect', artist: 'Ed Sheeran', duration: '4:23', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 12, title: 'All of Me', artist: 'John Legend', duration: '4:29', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 13, title: 'Thinking Out Loud', artist: 'Ed Sheeran', duration: '4:41', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 14, title: 'Make You Feel My Love', artist: 'Adele', duration: '3:32', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 15, title: 'At Last', artist: 'Etta James', duration: '3:01', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
     ]
   },
   tired: {
     name: 'Relaxing Sounds',
     color: ['#6b7280', '#374151'],
     songs: [
-      { id: 16, title: 'Weightless', artist: 'Marconi Union', duration: '8:08', isPlaying: false },
-      { id: 17, title: 'Clair de Lune', artist: 'Claude Debussy', duration: '5:02', isPlaying: false },
-      { id: 18, title: 'Gymnopédie No. 1', artist: 'Erik Satie', duration: '3:33', isPlaying: false },
-      { id: 19, title: 'River Flows in You', artist: 'Yiruma', duration: '3:06', isPlaying: false },
-      { id: 20, title: 'Ambient 1', artist: 'Brian Eno', duration: '6:14', isPlaying: false },
+      { id: 16, title: 'Weightless', artist: 'Marconi Union', duration: '8:08', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 17, title: 'Clair de Lune', artist: 'Claude Debussy', duration: '5:02', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 18, title: 'Gymnopédie No. 1', artist: 'Erik Satie', duration: '3:33', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 19, title: 'River Flows in You', artist: 'Yiruma', duration: '3:06', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 20, title: 'Ambient 1', artist: 'Brian Eno', duration: '6:14', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
     ]
   },
   excited: {
     name: 'High Energy',
     color: ['#10b981', '#059669'],
     songs: [
-      { id: 21, title: 'Uptown Funk', artist: 'Mark Ronson ft. Bruno Mars', duration: '4:30', isPlaying: false },
-      { id: 22, title: 'Can\'t Hold Us', artist: 'Macklemore & Ryan Lewis', duration: '4:18', isPlaying: false },
-      { id: 23, title: 'Pump It', artist: 'Black Eyed Peas', duration: '3:33', isPlaying: false },
-      { id: 24, title: 'Thunder', artist: 'Imagine Dragons', duration: '3:07', isPlaying: false },
-      { id: 25, title: 'Stronger', artist: 'Kelly Clarkson', duration: '3:42', isPlaying: false },
+      { id: 21, title: 'Uptown Funk', artist: 'Mark Ronson ft. Bruno Mars', duration: '4:30', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 22, title: 'Can\'t Hold Us', artist: 'Macklemore & Ryan Lewis', duration: '4:18', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 23, title: 'Pump It', artist: 'Black Eyed Peas', duration: '3:33', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 24, title: 'Thunder', artist: 'Imagine Dragons', duration: '3:07', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 25, title: 'Stronger', artist: 'Kelly Clarkson', duration: '3:42', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
     ]
   },
   lonely: {
     name: 'Soulful Melodies',
     color: ['#8b5cf6', '#7c3aed'],
     songs: [
-      { id: 26, title: 'The Sound of Silence', artist: 'Simon & Garfunkel', duration: '3:05', isPlaying: false },
-      { id: 27, title: 'Mad About You', artist: 'Sting', duration: '3:56', isPlaying: false },
-      { id: 28, title: 'Everybody Hurts', artist: 'R.E.M.', duration: '5:17', isPlaying: false },
-      { id: 29, title: 'Alone', artist: 'Heart', duration: '3:50', isPlaying: false },
-      { id: 30, title: 'Lonely', artist: 'Akon', duration: '3:56', isPlaying: false },
+      { id: 26, title: 'The Sound of Silence', artist: 'Simon & Garfunkel', duration: '3:05', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 27, title: 'Mad About You', artist: 'Sting', duration: '3:56', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 28, title: 'Everybody Hurts', artist: 'R.E.M.', duration: '5:17', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 29, title: 'Alone', artist: 'Heart', duration: '3:50', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 30, title: 'Lonely', artist: 'Akon', duration: '3:56', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
     ]
   },
   hungry: {
     name: 'Cooking Vibes',
     color: ['#f97316', '#ea580c'],
     songs: [
-      { id: 31, title: 'Cooking Up Something Good', artist: 'Mac DeMarco', duration: '3:17', isPlaying: false },
-      { id: 32, title: 'Sugar', artist: 'Maroon 5', duration: '3:55', isPlaying: false },
-      { id: 33, title: 'Banana Pancakes', artist: 'Jack Johnson', duration: '3:12', isPlaying: false },
-      { id: 34, title: 'Food Song', artist: 'Porno for Pyros', duration: '4:23', isPlaying: false },
-      { id: 35, title: 'Cheeseburger in Paradise', artist: 'Jimmy Buffett', duration: '3:18', isPlaying: false },
+      { id: 31, title: 'Cooking Up Something Good', artist: 'Mac DeMarco', duration: '3:17', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 32, title: 'Sugar', artist: 'Maroon 5', duration: '3:55', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 33, title: 'Banana Pancakes', artist: 'Jack Johnson', duration: '3:12', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 34, title: 'Food Song', artist: 'Porno for Pyros', duration: '4:23', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 35, title: 'Cheeseburger in Paradise', artist: 'Jimmy Buffett', duration: '3:18', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
     ]
   },
   moody: {
     name: 'Alternative Vibes',
     color: ['#06b6d4', '#0891b2'],
     songs: [
-      { id: 36, title: 'Creep', artist: 'Radiohead', duration: '3:58', isPlaying: false },
-      { id: 37, title: 'Black Hole Sun', artist: 'Soundgarden', duration: '5:18', isPlaying: false },
-      { id: 38, title: 'Smells Like Teen Spirit', artist: 'Nirvana', duration: '5:01', isPlaying: false },
-      { id: 39, title: 'Losing Religion', artist: 'R.E.M.', duration: '4:27', isPlaying: false },
-      { id: 40, title: 'Bitter Sweet Symphony', artist: 'The Verve', duration: '5:58', isPlaying: false },
+      { id: 36, title: 'Creep', artist: 'Radiohead', duration: '3:58', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 37, title: 'Black Hole Sun', artist: 'Soundgarden', duration: '5:18', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 38, title: 'Smells Like Teen Spirit', artist: 'Nirvana', duration: '5:01', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
+      { id: 39, title: 'Losing Religion', artist: 'R.E.M.', duration: '4:27', isPlaying: false, audioUrl: 'https://sample-music.netlify.app/death%20bed.mp3' },
+      { id: 40, title: 'Bitter Sweet Symphony', artist: 'The Verve', duration: '5:58', isPlaying: false, audioUrl: 'https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3' },
     ]
   },
 };
 
 export default function MusicPlayerScreen() {
-  const { moodAnalysis } = useMood();
-  const currentMood = moodAnalysis?.dominantMood || 'moody';
+  const { currentMoodAnalysis } = useMood();
+  const currentMood = currentMoodAnalysis?.dominantMood?.toLowerCase() || 'moody';
   const playlist = moodPlaylists[currentMood as keyof typeof moodPlaylists] || moodPlaylists.moody;
   
   const [currentSong, setCurrentSong] = useState(playlist.songs[0]);

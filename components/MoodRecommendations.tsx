@@ -6,9 +6,9 @@ import { Music, ChefHat, Clock, Star } from 'lucide-react-native';
 import { useMood, FoodRecommendation } from '../contexts/MoodContext';
 
 export default function MoodRecommendations() {
-  const { moodAnalysis, getFoodRecommendations, getMusicRecommendations } = useMood();
+  const { currentMoodAnalysis, getFoodRecommendations, getMusicRecommendations } = useMood();
   
-  if (!moodAnalysis) {
+  if (!currentMoodAnalysis) {
     return (
       <Animated.View 
         entering={FadeInDown.delay(1200).springify()}
