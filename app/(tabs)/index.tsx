@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, ImageBackground, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -11,15 +11,48 @@ import FoodActionPopup from '../../components/FoodActionPopup';
 import { useMood } from '../../contexts/MoodContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useCart } from '../../contexts/CartContext';
+import realtimeService from '../../services/realtime';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const { toggleTheme, isDark } = useTheme();
   const { getTotalItems } = useCart();
+  const { isConnectedToRealtime, friendMoodUpdates, realtimeRecommendations } = useMood();
   const [showFoodPopup, setShowFoodPopup] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState<number>(0);
+  const [recentActivity, setRecentActivity] = useState<string[]>([]);
 
-  const quickActions = [
+  // Real-time activity tracking
+  useEffect(() => {
+    // Track user activity
+    const trackActivity = (activity: string) => {
+      if (realtimeService.isConnectedToServer()) {
+        realtimeService.sendActivityUpdate({
+          userId: 'current-user',
+          activity,
+          timestamp: new Date().toISOString()
+        });
+      }
+    };
+
+    // Listen for activity updates
+    realtimeService.onActivityUpdate((data) => {
+      setRecentActivity(prev => [
+        `${data.activity} - ${new Date(data.timestamp).toLocaleTimeString()}`,
+        ...prev.slice(0, 4) // Keep only last 5 activities
+      ]);
+    });
+
+    // Track page visit
+    trackActivity('Visited Home Screen');
+
+    return () => {
+      // Cleanup handled by realtime service
+    };
+  }, []);
+
+  const quickActions = useMemo(() => [
     { 
       icon: Zap, 
       title: 'Detect Mood', 
@@ -47,13 +80,13 @@ export default function HomeScreen() {
       backgroundColor: '#F59E0B',
       iconBg: 'rgba(245, 158, 11, 0.8)'
     },
-  ];
+  ], []);
 
-  const moodStats = [
+  const moodStats = useMemo(() => [
     { label: 'Sessions', value: '12', color: '#3b82f6' },
     { label: 'Connections', value: '8', color: '#06b6d4' },
     { label: 'Streak', value: '5 days', color: '#10b981' },
-  ];
+  ], []);
 
   return (
     <LinearGradient
@@ -129,6 +162,21 @@ export default function HomeScreen() {
                 <Text style={styles.statLabel}>{stat.label}</Text>
               </View>
             ))}
+          </View>
+          
+          {/* Real-time Status Indicator */}
+          <View style={styles.realtimeStatus}>
+            <View style={styles.statusIndicator}>
+              <View style={[styles.statusDot, { backgroundColor: isConnectedToRealtime ? '#10b981' : '#ef4444' }]} />
+              <Text style={styles.statusText}>
+                {isConnectedToRealtime ? 'Live Connected' : 'Offline'}
+              </Text>
+            </View>
+            {friendMoodUpdates.length > 0 && (
+              <Text style={styles.friendUpdates}>
+                {friendMoodUpdates.length} friend{friendMoodUpdates.length > 1 ? 's' : ''} active
+              </Text>
+            )}
           </View>
         </Animated.View>
 
@@ -399,6 +447,35 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+  },
+  realtimeStatus: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statusIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#ffffff',
+  },
+  friendUpdates: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#a1a1aa',
   },
   recentActivityContainer: {
     marginBottom: 40,

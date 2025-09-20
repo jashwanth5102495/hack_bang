@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import realtimeService from '../services/realtime';
 
 export interface MoodAnalysis {
   dominantMood: string;
@@ -28,6 +29,11 @@ interface MoodContextType {
   getTherapeuticMood: (mood: string) => string;
   analyzeMoodFromSelection: (selectedMood: string) => void;
   isAnalyzing: boolean;
+  // Real-time features
+  realtimeRecommendations: any;
+  isConnectedToRealtime: boolean;
+  friendMoodUpdates: any[];
+  sendMoodUpdate: (mood: string, analysis: MoodAnalysis) => void;
 }
 
 const MoodContext = createContext<MoodContextType | undefined>(undefined);
@@ -53,9 +59,37 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
   });
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // Real-time state
+  const [realtimeRecommendations, setRealtimeRecommendations] = useState(null);
+  const [isConnectedToRealtime, setIsConnectedToRealtime] = useState(false);
+  const [friendMoodUpdates, setFriendMoodUpdates] = useState<any[]>([]);
+
+  // Initialize real-time connections
+  useEffect(() => {
+    // Set up real-time event listeners
+    const unsubscribeConnection = realtimeService.onConnectionChange((connected) => {
+      setIsConnectedToRealtime(connected);
+    });
+
+    const unsubscribeRecommendations = realtimeService.onRecommendations((recommendations) => {
+      setRealtimeRecommendations(recommendations);
+    });
+
+    const unsubscribeMoodUpdates = realtimeService.onMoodUpdate((moodUpdate) => {
+      setFriendMoodUpdates(prev => [moodUpdate, ...prev.slice(0, 9)]); // Keep last 10 updates
+    });
+
+    // Cleanup on unmount
+    return () => {
+      unsubscribeConnection();
+      unsubscribeRecommendations();
+      unsubscribeMoodUpdates();
+    };
+  }, []);
 
   // AI Mood Analysis Function
-  const analyzeMoodFromSelection = async (selectedMood: string) => {
+  const analyzeMoodFromSelection = useCallback(async (selectedMood: string) => {
     setIsAnalyzing(true);
 
     // Simulate AI analysis with realistic delay
@@ -83,7 +117,22 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
 
     setCurrentMoodAnalysis(analysisResult);
     setIsAnalyzing(false);
-  };
+
+    // Send real-time mood update
+    sendMoodUpdate(selectedMood, analysisResult);
+  }, []);
+
+  // Send mood update via real-time service
+  const sendMoodUpdate = useCallback((mood: string, analysis: MoodAnalysis) => {
+    if (realtimeService.isConnectedToServer()) {
+      realtimeService.sendMoodUpdate({
+        userId: 'current-user', // In a real app, this would come from user context
+        mood: mood,
+        analysis: analysis,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }, []);
 
   // Therapeutic mood balancing - recommend calming foods for negative moods
   const getTherapeuticMood = (currentMood: string): string => {
@@ -521,16 +570,31 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
     ).slice(0, 6);
   };
 
+  const contextValue = useMemo(() => ({
+    currentMoodAnalysis,
+    setCurrentMoodAnalysis,
+    getFoodRecommendations,
+    getTherapeuticRecommendations,
+    getTherapeuticMood,
+    analyzeMoodFromSelection,
+    isAnalyzing,
+    // Real-time features
+    realtimeRecommendations,
+    isConnectedToRealtime,
+    friendMoodUpdates,
+    sendMoodUpdate
+  }), [
+    currentMoodAnalysis,
+    isAnalyzing,
+    realtimeRecommendations,
+    isConnectedToRealtime,
+    friendMoodUpdates,
+    analyzeMoodFromSelection,
+    sendMoodUpdate
+  ]);
+
   return (
-    <MoodContext.Provider value={{
-      currentMoodAnalysis,
-      setCurrentMoodAnalysis,
-      getFoodRecommendations,
-      getTherapeuticRecommendations,
-      getTherapeuticMood,
-      analyzeMoodFromSelection,
-      isAnalyzing
-    }}>
+    <MoodContext.Provider value={contextValue}>
       {children}
     </MoodContext.Provider>
   );

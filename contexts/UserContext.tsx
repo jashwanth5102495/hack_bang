@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import apiService from '../services/api';
 
 export interface User {
   id: string;
@@ -13,6 +15,15 @@ export interface User {
     latitude: number;
     longitude: number;
   };
+  moodHistory?: Array<{
+    mood: string;
+    timestamp: string;
+  }>;
+  stats?: {
+    sessions: number;
+    connections: number;
+    streak: number;
+  };
 }
 
 interface UserContextType {
@@ -21,9 +32,11 @@ interface UserContextType {
   updateUser: (updates: Partial<User>) => void;
   saveUserData: (userData: any) => Promise<void>;
   isAuthenticated: boolean;
+  loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   register: (userData: Partial<User> & { email: string; password: string }) => Promise<boolean>;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -42,25 +55,105 @@ interface UserProviderProps {
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const updateUser = (updates: Partial<User>) => {
+  // Check for existing authentication on app start
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      setLoading(true);
+      const isAuth = await apiService.isAuthenticated();
+      
+      if (isAuth) {
+        // Try to get user profile from backend
+        const response = await apiService.getUserProfile();
+        if (response.success && response.data) {
+          const userData = response.data;
+          setUser({
+            id: userData._id || userData.id,
+            name: userData.name,
+            email: userData.email,
+            age: userData.age,
+            bio: userData.bio,
+            interests: userData.interests || [],
+            currentMood: userData.currentMood || 'Happy',
+            profileImage: userData.profileImage,
+            moodHistory: userData.moodHistory || [],
+            stats: {
+              sessions: userData.moodHistory?.length || 0,
+              connections: userData.connections?.length || 0,
+              streak: 0 // Calculate streak from mood history
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUser = async (updates: Partial<User>) => {
     if (user) {
-      setUser({ ...user, ...updates });
+      try {
+        // Update locally first for immediate UI feedback
+        const updatedUser = { ...user, ...updates };
+        setUser(updatedUser);
+
+        // Update on backend
+        const response = await apiService.updateUserProfile({
+          name: updates.name,
+          age: updates.age,
+          bio: updates.bio,
+          interests: updates.interests,
+          currentMood: updates.currentMood
+        });
+
+        if (!response.success) {
+          // Revert local changes if backend update fails
+          setUser(user);
+          throw new Error(response.error || 'Failed to update profile');
+        }
+      } catch (error) {
+        console.error('Error updating user:', error);
+        throw error;
+      }
     }
   };
 
   const saveUserData = async (userData: any) => {
     try {
-      // Update the current user with the new data
       if (user) {
-        const updatedUser: User = {
-          ...user,
-          name: userData.fullName || user.name,
-          interests: userData.interests || user.interests,
-          // Add any additional fields as needed
+        const profileData = {
+          name: userData.fullName || userData.name,
+          age: userData.age,
+          bio: userData.bio,
+          interests: userData.interests || userData.selectedInterests,
+          currentMood: userData.currentMood || user.currentMood
         };
-        setUser(updatedUser);
-        console.log('User data saved successfully:', updatedUser);
+
+        const response = await apiService.updateUserProfile(profileData);
+        
+        if (response.success) {
+          // Update local user state
+          const updatedUser: User = {
+            ...user,
+            ...profileData,
+            stats: user.stats || {
+              sessions: 0,
+              connections: 0,
+              streak: 0
+            }
+          };
+          setUser(updatedUser);
+          console.log('User data saved successfully:', updatedUser);
+        } else {
+          throw new Error(response.error || 'Failed to save user data');
+        }
       }
     } catch (error) {
       console.error('Error saving user data:', error);
@@ -70,50 +163,135 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Mock login - replace with actual API call
-      const mockUser: User = {
-        id: '1',
-        name: 'Alex Johnson',
-        email: email,
-        age: 25,
-        bio: 'Love exploring new places and meeting interesting people!',
-        interests: ['Travel', 'Food', 'Music', 'Photography'],
-        currentMood: 'Happy',
-        profileImage: 'https://via.placeholder.com/150x150/3b82f6/ffffff?text=AJ'
-      };
+      setLoading(true);
+      const response = await apiService.login(email, password);
       
-      setUser(mockUser);
-      return true;
+      if (response.success && response.data) {
+        const userData = response.data.user;
+        const newUser: User = {
+          id: userData._id || userData.id,
+          name: userData.name,
+          email: userData.email,
+          age: userData.age,
+          bio: userData.bio,
+          interests: userData.interests || [],
+          currentMood: userData.currentMood || 'Happy',
+          profileImage: userData.profileImage,
+          moodHistory: userData.moodHistory || [],
+          stats: {
+            sessions: userData.moodHistory?.length || 0,
+            connections: userData.connections?.length || 0,
+            streak: 0
+          }
+        };
+        
+        setUser(newUser);
+        
+        // Store user data locally for offline access
+        await AsyncStorage.setItem('userData', JSON.stringify(newUser));
+        
+        return true;
+      } else {
+        console.error('Login failed:', response.error);
+        return false;
+      }
     } catch (error) {
       console.error('Login error:', error);
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
   const register = async (userData: Partial<User> & { email: string; password: string }): Promise<boolean> => {
     try {
-      // Mock registration - replace with actual API call
-      const newUser: User = {
-        id: Date.now().toString(),
+      setLoading(true);
+      const response = await apiService.register({
         name: userData.name || 'New User',
         email: userData.email,
+        password: userData.password,
         age: userData.age,
         bio: userData.bio,
-        interests: userData.interests || [],
-        currentMood: 'Happy',
-        profileImage: `https://via.placeholder.com/150x150/3b82f6/ffffff?text=${userData.name?.charAt(0) || 'U'}`
-      };
+        interests: userData.interests || []
+      });
       
-      setUser(newUser);
-      return true;
+      if (response.success && response.data) {
+        const backendUser = response.data.user;
+        const newUser: User = {
+          id: backendUser._id || backendUser.id,
+          name: backendUser.name,
+          email: backendUser.email,
+          age: backendUser.age,
+          bio: backendUser.bio,
+          interests: backendUser.interests || [],
+          currentMood: backendUser.currentMood || 'Happy',
+          profileImage: backendUser.profileImage,
+          moodHistory: [],
+          stats: {
+            sessions: 0,
+            connections: 0,
+            streak: 0
+          }
+        };
+        
+        setUser(newUser);
+        
+        // Store user data locally
+        await AsyncStorage.setItem('userData', JSON.stringify(newUser));
+        
+        return true;
+      } else {
+        console.error('Registration failed:', response.error);
+        return false;
+      }
     } catch (error) {
       console.error('Registration error:', error);
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    try {
+      await apiService.logout();
+      await AsyncStorage.removeItem('userData');
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still clear local state even if backend call fails
+      setUser(null);
+    }
+  };
+
+  const refreshUserProfile = async () => {
+    try {
+      if (user) {
+        const response = await apiService.getUserProfile();
+        if (response.success && response.data) {
+          const userData = response.data;
+          const updatedUser: User = {
+            ...user,
+            name: userData.name,
+            age: userData.age,
+            bio: userData.bio,
+            interests: userData.interests || [],
+            currentMood: userData.currentMood || 'Happy',
+            profileImage: userData.profileImage,
+            moodHistory: userData.moodHistory || user.moodHistory,
+            stats: {
+              sessions: userData.moodHistory?.length || user.stats?.sessions || 0,
+              connections: userData.connections?.length || user.stats?.connections || 0,
+              streak: user.stats?.streak || 0
+            }
+          };
+          setUser(updatedUser);
+          await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing user profile:', error);
+    }
   };
 
   const isAuthenticated = user !== null;
@@ -125,9 +303,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       updateUser,
       saveUserData,
       isAuthenticated,
+      loading,
       login,
       logout,
-      register
+      register,
+      refreshUserProfile
     }}>
       {children}
     </UserContext.Provider>

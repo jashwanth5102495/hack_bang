@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Edit3, Camera, Calendar, Heart, Users, TrendingUp, Settings, LogOut } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInLeft } from 'react-native-reanimated';
+import { useUser } from '../../contexts/UserContext';
 
 interface UserProfile {
   id: string;
@@ -53,93 +54,66 @@ interface UserProfile {
   };
 }
 
-const mockUserProfile: UserProfile = {
-  id: '1',
-  name: 'Alex Johnson',
-  age: 25,
-  email: 'alex.johnson@email.com',
-  bio: 'Love exploring new places, trying different cuisines, and meeting interesting people. Always up for a good conversation!',
-  interests: ['Travel', 'Food', 'Music', 'Photography', 'Movies'],
-  currentMood: 'Happy',
-  profileImage: 'https://via.placeholder.com/150x150/3b82f6/ffffff?text=AJ',
-  stats: {
-    sessions: 42,
-    connections: 18,
-    streak: 7
-  },
-  moodHistory: [
-    { mood: 'Happy', timestamp: '2024-01-15' },
-    { mood: 'Excited', timestamp: '2024-01-14' },
-    { mood: 'Sad', timestamp: '2024-01-13' },
-    { mood: 'Happy', timestamp: '2024-01-12' },
-    { mood: 'Tired', timestamp: '2024-01-11' },
-    { mood: 'Moody', timestamp: '2024-01-10' },
-    { mood: 'Happy', timestamp: '2024-01-09' }
-  ],
-  weeklyAnalysis: {
-    dominantMood: 'Happy',
-    moodVariability: 'Medium',
-    mentalHealthScore: 75,
-    physicalHealthImpact: {
-      heart: {
-        status: 'Good',
-        description: 'Your predominantly positive mood patterns are beneficial for cardiovascular health. Happy emotions reduce cortisol levels and promote healthy heart rhythm.',
-        recommendations: [
-          'Continue engaging in mood-boosting activities',
-          'Maintain regular exercise routine',
-          'Practice gratitude daily'
-        ]
-      },
-      brain: {
-        status: 'Moderate',
-        description: 'Mood variability shows some stress patterns that may affect cognitive function. The mix of positive and negative emotions indicates normal emotional processing but requires attention.',
-        recommendations: [
-          'Practice mindfulness meditation 10-15 minutes daily',
-          'Ensure 7-8 hours of quality sleep',
-          'Engage in brain-stimulating activities like puzzles or reading'
-        ]
-      },
-      reproduction: {
-        status: 'Good',
-        description: 'Balanced mood patterns support healthy hormonal regulation. Positive emotions promote reproductive health by reducing stress hormones that can interfere with reproductive functions.',
-        recommendations: [
-          'Maintain stress management techniques',
-          'Ensure adequate nutrition with mood-supporting foods',
-          'Regular physical activity to support hormonal balance'
-        ]
-      },
-      bloodPressure: {
-        status: 'Normal',
-        description: 'Your mood patterns suggest normal blood pressure ranges. Positive emotions help maintain healthy blood pressure by reducing stress-induced spikes.',
-        recommendations: [
-          'Continue stress-reduction practices',
-          'Limit caffeine during stressful periods',
-          'Practice deep breathing exercises'
-        ]
-      }
-    },
-    recommendations: [
-      'Your mental health is generally good with room for improvement',
-      'Focus on managing mood swings through consistent sleep and exercise',
-      'Consider talking to someone during periods of sadness or stress',
-      'Maintain social connections to support emotional well-being'
-    ]
-  }
-};
+
 
 export default function ProfileScreen() {
-  const [profile, setProfile] = useState<UserProfile>(mockUserProfile);
+  const { user, updateUser, logout, loading } = useUser();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedProfile, setEditedProfile] = useState(profile);
+  const [editedProfile, setEditedProfile] = useState({
+    name: user?.name || '',
+    bio: user?.bio || '',
+    interests: user?.interests || []
+  });
 
-  const handleSaveProfile = () => {
-    setProfile(editedProfile);
-    setIsEditing(false);
-    Alert.alert('Success', 'Profile updated successfully!');
+  // Sync editedProfile with user data when user changes
+  useEffect(() => {
+    if (user) {
+      setEditedProfile({
+        name: user.name || '',
+        bio: user.bio || '',
+        interests: user.interests || []
+      });
+    }
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    try {
+      await updateUser(editedProfile);
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+    }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              router.replace('/(auth)/login');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleCancelEdit = () => {
-    setEditedProfile(profile);
+    setEditedProfile({
+      name: user?.name || '',
+      bio: user?.bio || '',
+      interests: user?.interests || []
+    });
     setIsEditing(false);
   };
 
@@ -212,7 +186,7 @@ export default function ProfileScreen() {
           style={styles.profileHeader}
         >
           <View style={styles.profileImageContainer}>
-            <Image source={{ uri: profile.profileImage }} style={styles.profileImage} />
+            <Image source={{ uri: user?.profileImage || 'https://via.placeholder.com/150x150/3b82f6/ffffff?text=U' }} style={styles.profileImage} />
             {isEditing && (
               <TouchableOpacity style={styles.cameraButton}>
                 <Camera size={16} color="#ffffff" />
@@ -230,17 +204,17 @@ export default function ProfileScreen() {
                 placeholderTextColor="#a1a1aa"
               />
             ) : (
-              <Text style={styles.profileName}>{profile.name}</Text>
+              <Text style={styles.profileName}>{user?.name || 'User'}</Text>
             )}
             
             <View style={styles.profileMeta}>
               <View style={styles.metaItem}>
                 <Calendar size={16} color="#a1a1aa" />
-                <Text style={styles.metaText}>{profile.age} years old</Text>
+                <Text style={styles.metaText}>{user?.age || 0} years old</Text>
               </View>
               <View style={styles.metaItem}>
-                <Text style={styles.moodEmoji}>{getMoodEmoji(profile.currentMood)}</Text>
-                <Text style={styles.metaText}>{profile.currentMood}</Text>
+                <Text style={styles.moodEmoji}>{getMoodEmoji(user?.currentMood || 'Happy')}</Text>
+                <Text style={styles.metaText}>{user?.currentMood || 'Happy'}</Text>
               </View>
             </View>
           </View>
@@ -253,17 +227,17 @@ export default function ProfileScreen() {
         >
           <View style={styles.statCard}>
             <TrendingUp size={20} color="#3b82f6" />
-            <Text style={styles.statValue}>{profile.stats.sessions}</Text>
+            <Text style={styles.statValue}>{user?.stats?.sessions || 0}</Text>
             <Text style={styles.statLabel}>Sessions</Text>
           </View>
           <View style={styles.statCard}>
             <Users size={20} color="#10b981" />
-            <Text style={styles.statValue}>{profile.stats.connections}</Text>
+            <Text style={styles.statValue}>{user?.stats?.connections || 0}</Text>
             <Text style={styles.statLabel}>Connections</Text>
           </View>
           <View style={styles.statCard}>
             <Heart size={20} color="#ef4444" />
-            <Text style={styles.statValue}>{profile.stats.streak}</Text>
+            <Text style={styles.statValue}>{user?.stats?.streak || 0}</Text>
             <Text style={styles.statLabel}>Day Streak</Text>
           </View>
         </Animated.View>
@@ -285,7 +259,7 @@ export default function ProfileScreen() {
               numberOfLines={4}
             />
           ) : (
-            <Text style={styles.bioText}>{profile.bio}</Text>
+            <Text style={styles.bioText}>{user?.bio || 'No bio available'}</Text>
           )}
         </Animated.View>
 
@@ -303,7 +277,7 @@ export default function ProfileScreen() {
             )}
           </View>
           <View style={styles.interestsContainer}>
-            {(isEditing ? editedProfile.interests : profile.interests).map((interest, index) => (
+            {(isEditing ? editedProfile.interests : (user?.interests || [])).map((interest, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.interestTag}
@@ -328,20 +302,20 @@ export default function ProfileScreen() {
             <View style={styles.scoreHeader}>
               <Text style={styles.scoreTitle}>Mental Health Score</Text>
               <View style={[styles.scoreCircle, { 
-                borderColor: profile.weeklyAnalysis.mentalHealthScore >= 80 ? '#10b981' : 
-                           profile.weeklyAnalysis.mentalHealthScore >= 60 ? '#f59e0b' : '#ef4444'
+                borderColor: (user?.weeklyAnalysis?.mentalHealthScore || 75) >= 80 ? '#10b981' : 
+                           (user?.weeklyAnalysis?.mentalHealthScore || 75) >= 60 ? '#f59e0b' : '#ef4444'
               }]}>
                 <Text style={[styles.scoreValue, {
-                  color: profile.weeklyAnalysis.mentalHealthScore >= 80 ? '#10b981' : 
-                         profile.weeklyAnalysis.mentalHealthScore >= 60 ? '#f59e0b' : '#ef4444'
+                  color: (user?.weeklyAnalysis?.mentalHealthScore || 75) >= 80 ? '#10b981' : 
+                         (user?.weeklyAnalysis?.mentalHealthScore || 75) >= 60 ? '#f59e0b' : '#ef4444'
                 }]}>
-                  {profile.weeklyAnalysis.mentalHealthScore}
+                  {user?.weeklyAnalysis?.mentalHealthScore || 75}
                 </Text>
               </View>
             </View>
             <Text style={styles.analysisText}>
-              Dominant mood: {profile.weeklyAnalysis.dominantMood} • 
-              Variability: {profile.weeklyAnalysis.moodVariability}
+              Dominant mood: {user?.weeklyAnalysis?.dominantMood || 'Happy'} • 
+              Variability: {user?.weeklyAnalysis?.moodVariability || 'Medium'}
             </Text>
           </View>
 
@@ -355,24 +329,24 @@ export default function ProfileScreen() {
                 <Heart size={20} color="#ef4444" />
                 <Text style={styles.healthCardTitle}>Cardiovascular System</Text>
                 <View style={[styles.statusBadge, {
-                  backgroundColor: profile.weeklyAnalysis.physicalHealthImpact.heart.status === 'Good' ? 
-                    'rgba(16, 185, 129, 0.2)' : profile.weeklyAnalysis.physicalHealthImpact.heart.status === 'Moderate' ?
+                  backgroundColor: (user?.weeklyAnalysis?.physicalHealthImpact?.heart?.status || 'Good') === 'Good' ? 
+                    'rgba(16, 185, 129, 0.2)' : (user?.weeklyAnalysis?.physicalHealthImpact?.heart?.status || 'Good') === 'Moderate' ?
                     'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)'
                 }]}>
                   <Text style={[styles.statusText, {
-                    color: profile.weeklyAnalysis.physicalHealthImpact.heart.status === 'Good' ? 
-                      '#10b981' : profile.weeklyAnalysis.physicalHealthImpact.heart.status === 'Moderate' ?
+                    color: (user?.weeklyAnalysis?.physicalHealthImpact?.heart?.status || 'Good') === 'Good' ? 
+                      '#10b981' : (user?.weeklyAnalysis?.physicalHealthImpact?.heart?.status || 'Good') === 'Moderate' ?
                       '#f59e0b' : '#ef4444'
                   }]}>
-                    {profile.weeklyAnalysis.physicalHealthImpact.heart.status}
+                    {user?.weeklyAnalysis?.physicalHealthImpact?.heart?.status || 'Good'}
                   </Text>
                 </View>
               </View>
               <Text style={styles.healthDescription}>
-                {profile.weeklyAnalysis.physicalHealthImpact.heart.description}
+                {user?.weeklyAnalysis?.physicalHealthImpact?.heart?.description || 'Your mood patterns support cardiovascular health. Positive emotions help maintain healthy heart rhythm.'}
               </Text>
               <View style={styles.recommendationsContainer}>
-                {profile.weeklyAnalysis.physicalHealthImpact.heart.recommendations.map((rec, index) => (
+                {(user?.weeklyAnalysis?.physicalHealthImpact?.heart?.recommendations || ['Continue engaging in mood-boosting activities', 'Maintain regular exercise routine', 'Practice gratitude daily']).map((rec, index) => (
                   <Text key={index} style={styles.recommendationItem}>• {rec}</Text>
                 ))}
               </View>
@@ -384,24 +358,24 @@ export default function ProfileScreen() {
                 <Text style={styles.healthIcon}>🧠</Text>
                 <Text style={styles.healthCardTitle}>Neurological System</Text>
                 <View style={[styles.statusBadge, {
-                  backgroundColor: profile.weeklyAnalysis.physicalHealthImpact.brain.status === 'Good' ? 
-                    'rgba(16, 185, 129, 0.2)' : profile.weeklyAnalysis.physicalHealthImpact.brain.status === 'Moderate' ?
+                  backgroundColor: (user?.weeklyAnalysis?.physicalHealthImpact?.brain?.status || 'Moderate') === 'Good' ? 
+                    'rgba(16, 185, 129, 0.2)' : (user?.weeklyAnalysis?.physicalHealthImpact?.brain?.status || 'Moderate') === 'Moderate' ?
                     'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)'
                 }]}>
                   <Text style={[styles.statusText, {
-                    color: profile.weeklyAnalysis.physicalHealthImpact.brain.status === 'Good' ? 
-                      '#10b981' : profile.weeklyAnalysis.physicalHealthImpact.brain.status === 'Moderate' ?
+                    color: (user?.weeklyAnalysis?.physicalHealthImpact?.brain?.status || 'Moderate') === 'Good' ? 
+                      '#10b981' : (user?.weeklyAnalysis?.physicalHealthImpact?.brain?.status || 'Moderate') === 'Moderate' ?
                       '#f59e0b' : '#ef4444'
                   }]}>
-                    {profile.weeklyAnalysis.physicalHealthImpact.brain.status}
+                    {user?.weeklyAnalysis?.physicalHealthImpact?.brain?.status || 'Moderate'}
                   </Text>
                 </View>
               </View>
               <Text style={styles.healthDescription}>
-                {profile.weeklyAnalysis.physicalHealthImpact.brain.description}
+                {user?.weeklyAnalysis?.physicalHealthImpact?.brain?.description || 'Mood variability shows some stress patterns that may affect cognitive function. Requires attention to maintain optimal brain health.'}
               </Text>
               <View style={styles.recommendationsContainer}>
-                {profile.weeklyAnalysis.physicalHealthImpact.brain.recommendations.map((rec, index) => (
+                {(user?.weeklyAnalysis?.physicalHealthImpact?.brain?.recommendations || ['Practice mindfulness meditation 10-15 minutes daily', 'Ensure 7-8 hours of quality sleep', 'Engage in brain-stimulating activities']).map((rec, index) => (
                   <Text key={index} style={styles.recommendationItem}>• {rec}</Text>
                 ))}
               </View>
@@ -413,24 +387,24 @@ export default function ProfileScreen() {
                 <Text style={styles.healthIcon}>🫀</Text>
                 <Text style={styles.healthCardTitle}>Reproductive System</Text>
                 <View style={[styles.statusBadge, {
-                  backgroundColor: profile.weeklyAnalysis.physicalHealthImpact.reproduction.status === 'Good' ? 
-                    'rgba(16, 185, 129, 0.2)' : profile.weeklyAnalysis.physicalHealthImpact.reproduction.status === 'Moderate' ?
+                  backgroundColor: (user?.weeklyAnalysis?.physicalHealthImpact?.reproduction?.status || 'Good') === 'Good' ? 
+                    'rgba(16, 185, 129, 0.2)' : (user?.weeklyAnalysis?.physicalHealthImpact?.reproduction?.status || 'Good') === 'Moderate' ?
                     'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)'
                 }]}>
                   <Text style={[styles.statusText, {
-                    color: profile.weeklyAnalysis.physicalHealthImpact.reproduction.status === 'Good' ? 
-                      '#10b981' : profile.weeklyAnalysis.physicalHealthImpact.reproduction.status === 'Moderate' ?
+                    color: (user?.weeklyAnalysis?.physicalHealthImpact?.reproduction?.status || 'Good') === 'Good' ? 
+                      '#10b981' : (user?.weeklyAnalysis?.physicalHealthImpact?.reproduction?.status || 'Good') === 'Moderate' ?
                       '#f59e0b' : '#ef4444'
                   }]}>
-                    {profile.weeklyAnalysis.physicalHealthImpact.reproduction.status}
+                    {user?.weeklyAnalysis?.physicalHealthImpact?.reproduction?.status || 'Good'}
                   </Text>
                 </View>
               </View>
               <Text style={styles.healthDescription}>
-                {profile.weeklyAnalysis.physicalHealthImpact.reproduction.description}
+                {user?.weeklyAnalysis?.physicalHealthImpact?.reproduction?.description || 'Balanced mood patterns support healthy hormonal regulation and reproductive health.'}
               </Text>
               <View style={styles.recommendationsContainer}>
-                {profile.weeklyAnalysis.physicalHealthImpact.reproduction.recommendations.map((rec, index) => (
+                {(user?.weeklyAnalysis?.physicalHealthImpact?.reproduction?.recommendations || ['Maintain stress management techniques', 'Ensure adequate nutrition', 'Regular physical activity']).map((rec, index) => (
                   <Text key={index} style={styles.recommendationItem}>• {rec}</Text>
                 ))}
               </View>
@@ -442,24 +416,24 @@ export default function ProfileScreen() {
                 <Text style={styles.healthIcon}>🩸</Text>
                 <Text style={styles.healthCardTitle}>Blood Pressure</Text>
                 <View style={[styles.statusBadge, {
-                  backgroundColor: profile.weeklyAnalysis.physicalHealthImpact.bloodPressure.status === 'Normal' ? 
-                    'rgba(16, 185, 129, 0.2)' : profile.weeklyAnalysis.physicalHealthImpact.bloodPressure.status === 'Elevated' ?
+                  backgroundColor: (user?.weeklyAnalysis?.physicalHealthImpact?.bloodPressure?.status || 'Normal') === 'Normal' ? 
+                    'rgba(16, 185, 129, 0.2)' : (user?.weeklyAnalysis?.physicalHealthImpact?.bloodPressure?.status || 'Normal') === 'Elevated' ?
                     'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)'
                 }]}>
                   <Text style={[styles.statusText, {
-                    color: profile.weeklyAnalysis.physicalHealthImpact.bloodPressure.status === 'Normal' ? 
-                      '#10b981' : profile.weeklyAnalysis.physicalHealthImpact.bloodPressure.status === 'Elevated' ?
+                    color: (user?.weeklyAnalysis?.physicalHealthImpact?.bloodPressure?.status || 'Normal') === 'Normal' ? 
+                      '#10b981' : (user?.weeklyAnalysis?.physicalHealthImpact?.bloodPressure?.status || 'Normal') === 'Elevated' ?
                       '#f59e0b' : '#ef4444'
                   }]}>
-                    {profile.weeklyAnalysis.physicalHealthImpact.bloodPressure.status}
+                    {user?.weeklyAnalysis?.physicalHealthImpact?.bloodPressure?.status || 'Normal'}
                   </Text>
                 </View>
               </View>
               <Text style={styles.healthDescription}>
-                {profile.weeklyAnalysis.physicalHealthImpact.bloodPressure.description}
+                {user?.weeklyAnalysis?.physicalHealthImpact?.bloodPressure?.description || 'Your mood patterns suggest normal blood pressure ranges. Positive emotions help maintain healthy blood pressure.'}
               </Text>
               <View style={styles.recommendationsContainer}>
-                {profile.weeklyAnalysis.physicalHealthImpact.bloodPressure.recommendations.map((rec, index) => (
+                {(user?.weeklyAnalysis?.physicalHealthImpact?.bloodPressure?.recommendations || ['Continue stress-reduction practices', 'Limit caffeine during stressful periods', 'Practice deep breathing exercises']).map((rec, index) => (
                   <Text key={index} style={styles.recommendationItem}>• {rec}</Text>
                 ))}
               </View>
@@ -469,7 +443,7 @@ export default function ProfileScreen() {
           {/* Overall Recommendations */}
           <View style={styles.overallRecommendations}>
             <Text style={styles.recommendationsTitle}>Weekly Recommendations</Text>
-            {profile.weeklyAnalysis.recommendations.map((rec, index) => (
+            {(user?.weeklyAnalysis?.recommendations || ['Your mental health is generally good with room for improvement', 'Focus on managing mood swings through consistent sleep and exercise', 'Consider talking to someone during periods of sadness or stress', 'Maintain social connections to support emotional well-being']).map((rec, index) => (
               <Text key={index} style={styles.overallRecommendationItem}>
                 {index + 1}. {rec}
               </Text>
@@ -484,7 +458,13 @@ export default function ProfileScreen() {
         >
           <Text style={styles.sectionTitle}>Recent Moods</Text>
           <View style={styles.moodHistoryContainer}>
-            {profile.moodHistory.slice(0, 5).map((entry, index) => (
+            {(user?.moodHistory || [
+              { mood: 'Happy', timestamp: '2024-01-15' },
+              { mood: 'Excited', timestamp: '2024-01-14' },
+              { mood: 'Sad', timestamp: '2024-01-13' },
+              { mood: 'Happy', timestamp: '2024-01-12' },
+              { mood: 'Tired', timestamp: '2024-01-11' }
+            ]).slice(0, 5).map((entry, index) => (
               <View key={index} style={styles.moodHistoryItem}>
                 <Text style={styles.moodHistoryEmoji}>{getMoodEmoji(entry.mood)}</Text>
                 <View style={styles.moodHistoryInfo}>
@@ -508,7 +488,7 @@ export default function ProfileScreen() {
               <Text style={styles.cancelButtonText}>Cancel Changes</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.logoutButton}>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <LogOut size={16} color="#ef4444" />
               <Text style={styles.logoutButtonText}>Sign Out</Text>
             </TouchableOpacity>

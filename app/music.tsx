@@ -6,6 +6,7 @@ import { ArrowLeft, Play, Pause, SkipBack, SkipForward, Heart, Shuffle, Repeat, 
 import Animated, { FadeInDown, FadeInLeft } from 'react-native-reanimated';
 import { Audio } from 'expo-av';
 import { useMood } from '../contexts/MoodContext';
+import realtimeService from '../services/realtime';
 
 interface Song {
   id: string;
@@ -19,109 +20,109 @@ interface Song {
   audioUrl?: string;
 }
 
-// Therapeutic music database - mood-based recommendations with popular artists
+// Therapeutic music database - mood-based recommendations with real audio
 const musicDatabase: Song[] = [
   // Happy mood - maintain positivity
   {
     id: 'h1',
-    title: 'Happy',
-    artist: 'Pharrell Williams',
-    album: 'Girl',
+    title: 'Sunny Day',
+    artist: 'Upbeat Collective',
+    album: 'Feel Good Vibes',
     duration: '3:53',
     mood: 'Happy',
     therapeuticPurpose: 'Maintain positive energy',
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-ukulele.mp3'
   },
   {
     id: 'h2',
-    title: 'Sorry',
-    artist: 'Justin Bieber',
-    album: 'Purpose',
+    title: 'Joyful Moments',
+    artist: 'Happy Tunes',
+    album: 'Positive Energy',
     duration: '3:20',
     mood: 'Happy',
     therapeuticPurpose: 'Uplifting pop energy',
     image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-happyrock.mp3'
   },
   {
     id: 'h3',
-    title: 'Lean On',
-    artist: 'Major Lazer & DJ Snake',
-    album: 'Peace Is The Mission',
+    title: 'Dance Energy',
+    artist: 'Electronic Vibes',
+    album: 'Uplifting Beats',
     duration: '2:56',
     mood: 'Happy',
     therapeuticPurpose: 'Electronic dance energy',
     image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-energy.mp3'
   },
   {
     id: 'h4',
-    title: 'Blinding Lights',
-    artist: 'The Weeknd',
-    album: 'After Hours',
+    title: 'Bright Future',
+    artist: 'Optimistic Sounds',
+    album: 'New Horizons',
     duration: '3:20',
     mood: 'Happy',
     therapeuticPurpose: 'Retro-pop euphoria',
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-summer.mp3'
   },
   {
     id: 'h5',
-    title: 'Sunflower',
-    artist: 'Post Malone & Swae Lee',
-    album: 'Spider-Verse Soundtrack',
+    title: 'Feel Good Vibes',
+    artist: 'Positive Energy',
+    album: 'Good Times',
     duration: '2:38',
     mood: 'Happy',
     therapeuticPurpose: 'Feel-good vibes',
     image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-18.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-buddy.mp3'
   },
 
   // Sad mood - uplifting therapeutic music
   {
     id: 's1',
-    title: 'Someone Like You',
-    artist: 'Adele',
-    album: '21',
+    title: 'Healing Hearts',
+    artist: 'Emotional Journey',
+    album: 'Recovery',
     duration: '4:45',
     mood: 'Sad',
     therapeuticPurpose: 'Emotional release and healing',
     image: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-sadday.mp3'
   },
   {
     id: 's2',
-    title: 'Fix You',
-    artist: 'Coldplay',
-    album: 'X&Y',
+    title: 'Hope Rising',
+    artist: 'Comfort Sounds',
+    album: 'New Dawn',
     duration: '4:54',
     mood: 'Sad',
     therapeuticPurpose: 'Hope and comfort',
     image: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-slowmotion.mp3'
   },
   {
     id: 's3',
-    title: 'The Night We Met',
-    artist: 'Lord Huron',
-    album: 'Strange Trails',
+    title: 'Peaceful Reflection',
+    artist: 'Calm Melodies',
+    album: 'Inner Peace',
     duration: '3:28',
     mood: 'Sad',
     therapeuticPurpose: 'Nostalgic reflection',
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-memories.mp3'
   },
   {
     id: 's4',
-    title: 'Hurt',
-    artist: 'Johnny Cash',
-    album: 'American IV',
+    title: 'Gentle Healing',
+    artist: 'Therapeutic Sounds',
+    album: 'Recovery Journey',
     duration: '3:38',
     mood: 'Sad',
     therapeuticPurpose: 'Deep emotional processing',
     image: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-19.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-tenderness.mp3'
   },
 
   // Angry mood - calming therapeutic music
@@ -134,7 +135,7 @@ const musicDatabase: Song[] = [
     mood: 'Angry',
     therapeuticPurpose: 'Scientifically proven to reduce anxiety',
     image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-relaxing.mp3'
   },
   {
     id: 'a2',
@@ -145,7 +146,7 @@ const musicDatabase: Song[] = [
     mood: 'Angry',
     therapeuticPurpose: 'Classical calming effect',
     image: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-piano.mp3'
   },
   {
     id: 'a3',
@@ -156,7 +157,7 @@ const musicDatabase: Song[] = [
     mood: 'Angry',
     therapeuticPurpose: 'Anger management through music',
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-sunny.mp3'
   },
 
   // Lonely mood - connection and warmth
@@ -169,7 +170,7 @@ const musicDatabase: Song[] = [
     mood: 'Lonely',
     therapeuticPurpose: 'Feeling of support and connection',
     image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-love.mp3'
   },
   {
     id: 'l2',
@@ -180,7 +181,7 @@ const musicDatabase: Song[] = [
     mood: 'Lonely',
     therapeuticPurpose: 'Comfort and friendship',
     image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-romantic.mp3'
   },
 
   // Tired mood - energizing but gentle
@@ -193,7 +194,7 @@ const musicDatabase: Song[] = [
     mood: 'Tired',
     therapeuticPurpose: 'Gentle energy boost',
     image: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-inspire.mp3'
   },
   {
     id: 't2',
@@ -204,88 +205,88 @@ const musicDatabase: Song[] = [
     mood: 'Tired',
     therapeuticPurpose: 'Mental clarity and optimism',
     image: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-creative.mp3'
   },
 
   // Excited mood - maintain high energy
   {
     id: 'e1',
-    title: 'Bangarang',
-    artist: 'Skrillex',
-    album: 'Bangarang EP',
+    title: 'High Energy Rush',
+    artist: 'Electronic Beats',
+    album: 'Adrenaline',
     duration: '3:35',
     mood: 'Excited',
     therapeuticPurpose: 'High-energy electronic rush',
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-dubstep.mp3'
   },
   {
     id: 'e2',
-    title: 'Taki Taki',
-    artist: 'DJ Snake ft. Selena Gomez',
-    album: 'Carte Blanche',
+    title: 'Dance Fever',
+    artist: 'Party Vibes',
+    album: 'Club Hits',
     duration: '3:32',
     mood: 'Excited',
     therapeuticPurpose: 'Latin-infused dance energy',
     image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-house.mp3'
   },
   {
     id: 'e3',
-    title: 'Titanium',
-    artist: 'David Guetta ft. Sia',
-    album: 'Nothing but the Beat',
+    title: 'Power Anthem',
+    artist: 'Empowerment Sounds',
+    album: 'Strength',
     duration: '4:05',
     mood: 'Excited',
     therapeuticPurpose: 'Empowering electronic anthem',
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-20.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-epic.mp3'
   },
   {
     id: 'e4',
-    title: 'Levels',
-    artist: 'Avicii',
-    album: 'True',
+    title: 'Peak Energy',
+    artist: 'Motivation Music',
+    album: 'Maximum Drive',
     duration: '3:18',
     mood: 'Excited',
     therapeuticPurpose: 'Progressive house euphoria',
     image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-21.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-actionable.mp3'
   },
 
   // Romantic mood - love and connection
   {
     id: 'r1',
-    title: 'Perfect',
-    artist: 'Ed Sheeran',
-    album: '÷ (Divide)',
+    title: 'Perfect Love',
+    artist: 'Romantic Melodies',
+    album: 'Heart Songs',
     duration: '4:23',
     mood: 'Romantic',
     therapeuticPurpose: 'Romantic connection and love',
     image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-love.mp3'
   },
   {
     id: 'r2',
-    title: 'All of Me',
-    artist: 'John Legend',
-    album: 'Love in the Future',
+    title: 'Heartfelt Moments',
+    artist: 'Intimate Sounds',
+    album: 'Deep Connection',
     duration: '4:29',
     mood: 'Romantic',
     therapeuticPurpose: 'Deep emotional intimacy',
     image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-22.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-romantic.mp3'
   },
   {
     id: 'r3',
-    title: 'Thinking Out Loud',
-    artist: 'Ed Sheeran',
-    album: 'x (Multiply)',
+    title: 'Forever Together',
+    artist: 'Eternal Love',
+    album: 'Commitment',
     duration: '4:41',
     mood: 'Romantic',
     therapeuticPurpose: 'Lasting love and commitment',
     image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-23.mp3'
+    audioUrl: 'https://www.bensound.com/bensound-music/bensound-tenderness.mp3'
   }
 ];
 
@@ -297,8 +298,48 @@ export default function MusicScreen() {
   const [isShuffled, setIsShuffled] = useState(false);
   const [isRepeated, setIsRepeated] = useState(false);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [syncedUsers, setSyncedUsers] = useState<string[]>([]);
 
   const currentMood = currentMoodAnalysis?.dominantMood || 'Happy';
+
+  // Real-time music sync functionality
+  useEffect(() => {
+    // Listen for music sync events
+    realtimeService.onMusicSync((data) => {
+      if (data.action === 'play' && data.song) {
+        setCurrentSong(data.song);
+        setIsPlaying(true);
+      } else if (data.action === 'pause') {
+        setIsPlaying(false);
+      } else if (data.action === 'seek' && data.position !== undefined) {
+        // Handle seek position if needed
+      }
+    });
+
+    realtimeService.onUserJoinedSync((data) => {
+      setSyncedUsers(prev => [...prev, data.userId]);
+    });
+
+    realtimeService.onUserLeftSync((data) => {
+      setSyncedUsers(prev => prev.filter(id => id !== data.userId));
+    });
+
+    return () => {
+      // Cleanup listeners handled by realtime service
+    };
+  }, []);
+
+  // Send music sync updates
+  const sendMusicSync = (action: string, song?: Song, position?: number) => {
+    if (realtimeService.isConnectedToServer()) {
+      realtimeService.sendMusicSync({
+        action,
+        song,
+        position,
+        timestamp: new Date().toISOString()
+      });
+    }
+  };
 
   // Get therapeutic recommendations based on mood
   const getTherapeuticSongs = (mood: string): Song[] => {
@@ -357,9 +398,11 @@ export default function MusicScreen() {
         if (isPlaying) {
           await sound.pauseAsync();
           setIsPlaying(false);
+          sendMusicSync('pause');
         } else {
           await sound.playAsync();
           setIsPlaying(true);
+          sendMusicSync('play', currentSong);
         }
       } else if (currentSong?.audioUrl) {
         // Load and play new audio
@@ -388,6 +431,9 @@ export default function MusicScreen() {
       
       setSound(newSound);
       setIsPlaying(true);
+      
+      // Send real-time sync update for new song
+      sendMusicSync('play', currentSong);
 
       // Set up playback status update
       newSound.setOnPlaybackStatusUpdate((status) => {

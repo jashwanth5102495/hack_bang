@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -513,16 +513,26 @@ export default function ReelsScreen() {
   }, [recommendedReels]);
 
   useEffect(() => {
-    // Handle play/pause state changes
-    const currentVideo = recommendedReels[currentReelIndex];
-    if (currentVideo && videoRefs.current[currentVideo.id]) {
-      if (isPlaying) {
-        videoRefs.current[currentVideo.id].playAsync().catch(console.log);
-      } else {
-        videoRefs.current[currentVideo.id].pauseAsync().catch(console.log);
+    // Handle play/pause state changes for current video
+    const playCurrentVideo = async () => {
+      const currentVideo = recommendedReels[currentReelIndex];
+      if (currentVideo && videoRefs.current[currentVideo.id]) {
+        try {
+          // First pause all videos
+          await pauseAllVideos();
+          
+          // Then play the current video if isPlaying is true
+          if (isPlaying) {
+            await videoRefs.current[currentVideo.id].playAsync();
+          }
+        } catch (error) {
+          console.log('Error managing video playback:', error);
+        }
       }
-    }
-  }, [isPlaying, currentReelIndex]);
+    };
+
+    playCurrentVideo();
+  }, [isPlaying, currentReelIndex, recommendedReels]);
 
   const videoRefs = useRef<{ [key: string]: Video }>({});
 
@@ -534,6 +544,8 @@ export default function ReelsScreen() {
     if (currentVideo && videoRefs.current[currentVideo.id]) {
       try {
         if (newPlayingState) {
+          // Pause all other videos first
+          await pauseAllVideos();
           await videoRefs.current[currentVideo.id].playAsync();
         } else {
           await videoRefs.current[currentVideo.id].pauseAsync();
@@ -546,6 +558,13 @@ export default function ReelsScreen() {
 
   const handleVideoLoad = (videoId: string, video: Video) => {
     videoRefs.current[videoId] = video;
+    
+    // If this is the first video and we should be playing, start it
+    if (videoId === recommendedReels[0]?.id && currentReelIndex === 0 && isPlaying) {
+      setTimeout(() => {
+        video.playAsync().catch(console.log);
+      }, 100);
+    }
   };
 
   const pauseAllVideos = async () => {
@@ -579,6 +598,14 @@ export default function ReelsScreen() {
     );
   };
 
+  const handleLike = useCallback((videoId: string) => {
+    likeVideo(videoId);
+  }, []);
+
+  const handleComment = useCallback((videoId: string) => {
+    Alert.alert('Comments', 'Comments feature coming soon!');
+  }, []);
+
   const heartAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: heartScale.value }],
   }));
@@ -587,7 +614,7 @@ export default function ReelsScreen() {
     transform: [{ rotate: `${playButtonRotation.value}deg` }],
   }));
 
-  const renderReel = (reel: LocalVideo, index: number) => (
+  const renderReel = useCallback((reel: LocalVideo, index: number) => (
     <View key={reel.id} style={[styles.reelContainer, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="light-content" />
       
@@ -662,7 +689,7 @@ export default function ReelsScreen() {
         <View style={styles.rightActions}>
           <TouchableOpacity 
             style={[styles.actionButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
-            onPress={() => likeVideo(reel.id)}
+            onPress={() => handleLike(reel.id)}
           >
             <Animated.View style={heartAnimatedStyle}>
               <Heart 
@@ -676,7 +703,10 @@ export default function ReelsScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.actionButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+          <TouchableOpacity 
+            style={[styles.actionButton, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+            onPress={() => handleComment(reel.id)}
+          >
             <MessageCircle size={24} color="white" />
             <Text style={[styles.actionText, { color: 'white' }]}>
               {reel.comments}
@@ -695,7 +725,7 @@ export default function ReelsScreen() {
 
 
     </View>
-  );
+  ), [theme, currentReelIndex, isPlaying, handleLike, handleComment]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -706,27 +736,14 @@ export default function ReelsScreen() {
         onMomentumScrollEnd={async (event) => {
           const index = Math.round(event.nativeEvent.contentOffset.y / SCREEN_HEIGHT);
           
-          // Pause all videos first
-          await pauseAllVideos();
-          
+          // Update current index and playing state
           setCurrentReelIndex(index);
           setIsPlaying(true);
           
-          // Play the current video after a small delay
-          setTimeout(async () => {
-            const currentVideo = recommendedReels[index];
-            if (currentVideo && videoRefs.current[currentVideo.id]) {
-              try {
-                await videoRefs.current[currentVideo.id].playAsync();
-              } catch (error) {
-                console.log('Error playing video:', error);
-              }
-            }
-          }, 100);
+          // The useEffect will handle the actual video switching
         }}
         onScrollBeginDrag={async () => {
-          // Pause all videos when user starts scrolling
-          await pauseAllVideos();
+          // Pause current video when user starts scrolling
           setIsPlaying(false);
         }}
       >

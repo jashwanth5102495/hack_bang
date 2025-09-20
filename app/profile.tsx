@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, Edit3, Camera, MapPin, Calendar, Heart, Users, TrendingUp } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInLeft } from 'react-native-reanimated';
+import { useUser } from '../contexts/UserContext';
 
 interface UserProfile {
   id: string;
@@ -25,38 +26,34 @@ interface UserProfile {
   }>;
 }
 
-const mockUserProfile: UserProfile = {
-  id: '1',
-  name: 'Alex Johnson',
-  age: 25,
-  email: 'alex.johnson@email.com',
-  bio: 'Love exploring new places, trying different cuisines, and meeting interesting people. Always up for a good conversation!',
-  interests: ['Travel', 'Food', 'Music', 'Photography', 'Movies'],
-  currentMood: 'Happy',
-  profileImage: 'https://via.placeholder.com/150x150/3b82f6/ffffff?text=AJ',
-  stats: {
-    sessions: 42,
-    connections: 18,
-    streak: 7
-  },
-  moodHistory: [
-    { mood: 'Happy', timestamp: '2024-01-15' },
-    { mood: 'Excited', timestamp: '2024-01-14' },
-    { mood: 'Chill', timestamp: '2024-01-13' },
-    { mood: 'Happy', timestamp: '2024-01-12' },
-    { mood: 'Energetic', timestamp: '2024-01-11' }
-  ]
-};
-
 export default function ProfileScreen() {
-  const [profile, setProfile] = useState<UserProfile>(mockUserProfile);
+  const { user, updateUser, loading } = useUser();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedProfile, setEditedProfile] = useState(profile);
+  const [editedProfile, setEditedProfile] = useState({
+    name: user?.name || '',
+    bio: user?.bio || '',
+    interests: user?.interests || []
+  });
 
-  const handleSaveProfile = () => {
-    setProfile(editedProfile);
-    setIsEditing(false);
-    Alert.alert('Success', 'Profile updated successfully!');
+  // Sync editedProfile with user data when user changes
+  useEffect(() => {
+    if (user) {
+      setEditedProfile({
+        name: user.name || '',
+        bio: user.bio || '',
+        interests: user.interests || []
+      });
+    }
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    try {
+      await updateUser(editedProfile);
+      setIsEditing(false);
+      Alert.alert('Success', 'Profile updated successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+    }
   };
 
   const handleCancelEdit = () => {
@@ -152,17 +149,17 @@ export default function ProfileScreen() {
                 placeholderTextColor="#a1a1aa"
               />
             ) : (
-              <Text style={styles.profileName}>{profile.name}</Text>
+              <Text style={styles.profileName}>{user?.name || 'User'}</Text>
             )}
             
             <View style={styles.profileMeta}>
               <View style={styles.metaItem}>
                 <Calendar size={16} color="#a1a1aa" />
-                <Text style={styles.metaText}>{profile.age} years old</Text>
+                <Text style={styles.metaText}>{user?.age || 0} years old</Text>
               </View>
               <View style={styles.metaItem}>
-                <Text style={styles.moodEmoji}>{getMoodEmoji(profile.currentMood)}</Text>
-                <Text style={styles.metaText}>{profile.currentMood}</Text>
+                <Text style={styles.moodEmoji}>{getMoodEmoji(user?.currentMood || 'Happy')}</Text>
+                <Text style={styles.metaText}>{user?.currentMood || 'Happy'}</Text>
               </View>
             </View>
           </View>
@@ -175,17 +172,17 @@ export default function ProfileScreen() {
         >
           <View style={styles.statCard}>
             <TrendingUp size={20} color="#3b82f6" />
-            <Text style={styles.statValue}>{profile.stats.sessions}</Text>
+            <Text style={styles.statValue}>{user?.stats?.sessions || 0}</Text>
             <Text style={styles.statLabel}>Sessions</Text>
           </View>
           <View style={styles.statCard}>
             <Users size={20} color="#10b981" />
-            <Text style={styles.statValue}>{profile.stats.connections}</Text>
+            <Text style={styles.statValue}>{user?.stats?.connections || 0}</Text>
             <Text style={styles.statLabel}>Connections</Text>
           </View>
           <View style={styles.statCard}>
             <Heart size={20} color="#ef4444" />
-            <Text style={styles.statValue}>{profile.stats.streak}</Text>
+            <Text style={styles.statValue}>{user?.stats?.streak || 0}</Text>
             <Text style={styles.statLabel}>Day Streak</Text>
           </View>
         </Animated.View>
@@ -207,7 +204,7 @@ export default function ProfileScreen() {
               numberOfLines={4}
             />
           ) : (
-            <Text style={styles.bioText}>{profile.bio}</Text>
+            <Text style={styles.bioText}>{user?.bio || 'No bio available'}</Text>
           )}
         </Animated.View>
 
@@ -225,7 +222,7 @@ export default function ProfileScreen() {
             )}
           </View>
           <View style={styles.interestsContainer}>
-            {(isEditing ? editedProfile.interests : profile.interests).map((interest, index) => (
+            {(isEditing ? editedProfile.interests : (user?.interests || [])).map((interest, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.interestTag}
@@ -245,7 +242,7 @@ export default function ProfileScreen() {
         >
           <Text style={styles.sectionTitle}>Recent Moods</Text>
           <View style={styles.moodHistoryContainer}>
-            {profile.moodHistory.slice(0, 5).map((entry, index) => (
+            {(user?.moodHistory || []).slice(0, 5).map((entry, index) => (
               <View key={index} style={styles.moodHistoryItem}>
                 <Text style={styles.moodHistoryEmoji}>{getMoodEmoji(entry.mood)}</Text>
                 <View style={styles.moodHistoryInfo}>
