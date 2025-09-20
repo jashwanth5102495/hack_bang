@@ -18,7 +18,7 @@ const moodCards = [
     mood: 'Happy',
     gradient: ['rgba(255, 217, 61, 0.3)', 'rgba(255, 107, 107, 0.3)'],
     description: 'Celebration foods, positive vibes, uplifting content',
-    image: { uri: 'https://images.unsplash.com/photo-1607344645866-009c7d0435c9?w=400&h=300&fit=crop' },
+    image: require('../img/happy.png'),
     content: 'Upbeat vibes, celebration foods, positive energy',
     benefits: ['Maintain positive energy', 'Social connection', 'Joyful experiences']
   },
@@ -29,7 +29,7 @@ const moodCards = [
     mood: 'Sad',
     gradient: ['rgba(102, 126, 234, 0.2)', 'rgba(118, 75, 162, 0.2)'],
     description: 'Comfort foods, warm dishes, cozy places for healing',
-    image: { uri: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=400&h=300&fit=crop' },
+    image: require('../img/sad.png'),
     content: 'Warm foods, cozy places, therapeutic comfort',
     benefits: ['Emotional healing', 'Comfort and warmth', 'Mood lifting']
   },
@@ -40,7 +40,7 @@ const moodCards = [
     mood: 'Romantic',
     gradient: ['rgba(255, 154, 158, 0.2)', 'rgba(254, 207, 239, 0.2)'],
     description: 'Romantic dining, intimate settings, love-focused content',
-    image: { uri: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop' },
+    image: require('../img/Romantic.png'),
     content: 'Romantic dining, intimate settings, love vibes',
     benefits: ['Enhance romance', 'Intimate connection', 'Special moments']
   },
@@ -51,7 +51,7 @@ const moodCards = [
     mood: 'Tired',
     gradient: ['rgba(168, 237, 234, 0.2)', 'rgba(254, 214, 227, 0.2)'],
     description: 'Energy foods, quick options, revitalizing content',
-    image: { uri: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&h=300&fit=crop' },
+    image: require('../img/Tired.png'),
     content: 'Energy foods, quick options, revitalizing vibes',
     benefits: ['Boost energy', 'Quick recovery', 'Mental clarity']
   },
@@ -62,7 +62,7 @@ const moodCards = [
     mood: 'Excited',
     gradient: ['rgba(255, 107, 107, 0.2)', 'rgba(254, 202, 87, 0.2)'],
     description: 'Power foods, active spaces, high-energy content',
-    image: { uri: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400&h=300&fit=crop' },
+    image: require('../img/Excited.png'),
     content: 'Power foods, active spaces, high energy vibes',
     benefits: ['Sustain excitement', 'High energy', 'Active lifestyle']
   },
@@ -73,7 +73,7 @@ const moodCards = [
     mood: 'Lonely',
     gradient: ['rgba(116, 185, 255, 0.2)', 'rgba(9, 132, 227, 0.2)'],
     description: 'Comfort treats, peaceful places, connection-focused content',
-    image: { uri: 'https://images.unsplash.com/photo-1494790108755-2616c27b40e2?w=400&h=300&fit=crop' },
+    image: require('../img/Lonely.png'),
     content: 'Comfort treats, peaceful places, connection vibes',
     benefits: ['Feel connected', 'Emotional support', 'Peaceful comfort']
   },
@@ -84,7 +84,7 @@ const moodCards = [
     mood: 'Hungry',
     gradient: ['rgba(253, 121, 168, 0.2)', 'rgba(253, 203, 110, 0.2)'],
     description: 'Satisfying meals, hearty portions, food-focused content',
-    image: { uri: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop' },
+    image: require('../img/Hungry.png'),
     content: 'Satisfying meals, hearty portions, food inspiration',
     benefits: ['Complete satisfaction', 'Hearty nourishment', 'Food joy']
   },
@@ -95,7 +95,7 @@ const moodCards = [
     mood: 'Moody',
     gradient: ['rgba(162, 155, 254, 0.2)', 'rgba(108, 92, 231, 0.2)'],
     description: 'Mood-boosting foods, creative spaces, balancing content',
-    image: { uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop' },
+    image: require('../img/Moody.png'),
     content: 'Mood-boosting foods, creative spaces, balancing vibes',
     benefits: ['Emotional balance', 'Creative expression', 'Mood stability']
   }

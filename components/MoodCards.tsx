@@ -32,7 +32,7 @@ const moodCards: MoodCard[] = [
     description: 'Upbeat vibes, celebration foods, positive energy',
     gradient: ['#ffd93d', '#ff6b6b'],
     tips: ['Share your joy', 'Try new activities', 'Connect with friends'],
-    image: { uri: 'https://images.unsplash.com/photo-1607344645866-009c7d0435c9?w=400&h=300&fit=crop' },
+    image: require('../img/happy.png'),
     therapeuticContent: 'Keep the positive energy flowing',
     foodType: 'Celebration foods'
   },
@@ -43,7 +43,7 @@ const moodCards: MoodCard[] = [
     description: 'Comfort foods, warm dishes, cozy places',
     gradient: ['#667eea', '#764ba2'],
     tips: ['Practice self-care', 'Reach out to friends', 'Try gentle activities'],
-    image: { uri: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=400&h=300&fit=crop' },
+    image: require('../img/sad.png'),
     therapeuticContent: 'Uplifting content to brighten your mood',
     foodType: 'Warm comfort foods'
   },
@@ -54,7 +54,7 @@ const moodCards: MoodCard[] = [
     description: 'Romantic dining, intimate settings, love vibes',
     gradient: ['#ff9a9e', '#fecfef'],
     tips: ['Plan a date', 'Express your feelings', 'Create romantic moments'],
-    image: { uri: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop' },
+    image: require('../img/Romantic.png'),
     therapeuticContent: 'Romantic content for special moments',
     foodType: 'Romantic dining'
   },
@@ -65,7 +65,7 @@ const moodCards: MoodCard[] = [
     description: 'Energy foods, quick options, relaxing vibes',
     gradient: ['#a8edea', '#fed6e3'],
     tips: ['Get enough rest', 'Take breaks', 'Practice relaxation'],
-    image: { uri: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&h=300&fit=crop' },
+    image: require('../img/Tired.png'),
     therapeuticContent: 'Energizing content to help you recharge',
     foodType: 'Energy-boosting foods'
   },
@@ -76,7 +76,7 @@ const moodCards: MoodCard[] = [
     description: 'Power foods, active spaces, high energy vibes',
     gradient: ['#ff6b6b', '#feca57'],
     tips: ['Channel your energy', 'Try new things', 'Share your excitement'],
-    image: { uri: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400&h=300&fit=crop' },
+    image: require('../img/Excited.png'),
     therapeuticContent: 'High-energy content to match your vibe',
     foodType: 'Power foods'
   },
@@ -87,7 +87,7 @@ const moodCards: MoodCard[] = [
     description: 'Comfort treats, peaceful places, soulful vibes',
     gradient: ['#74b9ff', '#0984e3'],
     tips: ['Connect with others', 'Join communities', 'Practice self-compassion'],
-    image: { uri: 'https://images.unsplash.com/photo-1494790108755-2616c27b40e2?w=400&h=300&fit=crop' },
+    image: require('../img/Lonely.png'),
     therapeuticContent: 'Uplifting content to help you feel connected',
     foodType: 'Comfort treats'
   },
@@ -98,7 +98,7 @@ const moodCards: MoodCard[] = [
     description: 'Satisfying meals, hearty portions, cooking vibes',
     gradient: ['#fd79a8', '#fdcb6e'],
     tips: ['Plan your meals', 'Try new recipes', 'Enjoy the cooking process'],
-    image: { uri: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop' },
+    image: require('../img/Hungry.png'),
     therapeuticContent: 'Cooking content and food inspiration',
     foodType: 'Satisfying meals'
   },
@@ -109,7 +109,7 @@ const moodCards: MoodCard[] = [
     description: 'Mood-boosting foods, creative spaces, alternative vibes',
     gradient: ['#a29bfe', '#6c5ce7'],
     tips: ['Embrace your complexity', 'Express yourself creatively', 'Find balance'],
-    image: { uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop' },
+    image: require('../img/Moody.png'),
     therapeuticContent: 'Mood-balancing content to help you find peace',
     foodType: 'Mood-boosting foods'
   }
