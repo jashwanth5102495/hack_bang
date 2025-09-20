@@ -1,37 +1,52 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, ImageBackground, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Users, MessageCircle, Zap, TrendingUp, Palette, ChefHat, Music } from 'lucide-react-native';
+import { Users, MessageCircle, Zap, TrendingUp, Moon, Sun, Music, UtensilsCrossed, UserCircle, ShoppingCart } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInLeft } from 'react-native-reanimated';
 import CircularDishCards from '../../components/CircularDishCards';
 import MoodRecommendations from '../../components/MoodRecommendations';
 import ScrollingMoodQuotes from '../../components/ScrollingMoodQuotes';
-import MoodCards from '../../components/MoodCards';
+import FoodActionPopup from '../../components/FoodActionPopup';
 import { useMood } from '../../contexts/MoodContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useCart } from '../../contexts/CartContext';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  const { currentMoodAnalysis, getMusicRecommendations, setMoodAnalysis } = useMood();
-  
-  const currentMood = currentMoodAnalysis?.dominantMood || 'Unknown';
-  const musicRecommendations = getMusicRecommendations();
-
-  const handleMoodSelect = (mood: any) => {
-    // Update mood analysis when user selects a mood
-    const newMoodAnalysis = {
-      dominantMood: mood.mood,
-      dominantGenre: 'Mixed',
-      likedCount: 1,
-      timestamp: Date.now()
-    };
-    setMoodAnalysis(newMoodAnalysis);
-  };
+  const { toggleTheme, isDark } = useTheme();
+  const { getTotalItems } = useCart();
+  const [showFoodPopup, setShowFoodPopup] = useState(false);
 
   const quickActions = [
-    { icon: Zap, title: 'Detect Mood', subtitle: 'Quick mood check', route: '/mood', gradient: ['#8b5cf6', '#06b6d4'] },
-    { icon: Users, title: 'Find Friends', subtitle: 'Mood-based matching', route: '/connect', gradient: ['#ec4899', '#8b5cf6'] },
+    { 
+      icon: Zap, 
+      title: 'Detect Mood', 
+      subtitle: 'Quick mood check', 
+      route: '/mood', 
+      image: require('../../img/happy.png'),
+      backgroundColor: '#8B5CF6',
+      iconBg: 'rgba(139, 92, 246, 0.8)'
+    },
+    { 
+      icon: Users, 
+      title: 'Find Friends', 
+      subtitle: 'Meet nearby users', 
+      route: '/friends', 
+      image: require('../../img/Excited.png'), // Using excited mood image for friends
+      backgroundColor: '#EC4899',
+      iconBg: 'rgba(236, 72, 153, 0.8)'
+    },
+    { 
+      icon: TrendingUp, 
+      title: 'Movies', 
+      subtitle: 'Theater & streaming', 
+      route: '/movies', 
+      image: require('../../img/movie.png'),
+      backgroundColor: '#F59E0B',
+      iconBg: 'rgba(245, 158, 11, 0.8)'
+    },
   ];
 
   const moodStats = [
@@ -42,7 +57,7 @@ export default function HomeScreen() {
 
   return (
     <LinearGradient
-      colors={['#000000', '#0a0a0a', '#1a1a1a']}
+      colors={['#000000', '#0a0a0a', '#111111'] as const}
       style={styles.container}
     >
       {/* Top Navigation Icons */}
@@ -50,23 +65,40 @@ export default function HomeScreen() {
         <View style={styles.topNavLeft}>
           <TouchableOpacity 
             style={styles.topNavIcon}
-            onPress={() => router.push('/mood')}
+            onPress={toggleTheme}
           >
-            <ChefHat size={24} color="#ffffff" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.topNavIcon}
-            onPress={() => router.push('/recommendations')}
-          >
-            <Music size={24} color="#ffffff" />
+            {isDark ? <Sun size={24} color="#ffffff" /> : <Moon size={24} color="#ffffff" />}
           </TouchableOpacity>
         </View>
         <View style={styles.topNavRight}>
           <TouchableOpacity 
             style={styles.topNavIcon}
-            onPress={() => {/* Theme switching logic */}}
+            onPress={() => router.push('/music')}
           >
-            <Palette size={24} color="#ffffff" />
+            <Music size={24} color="#ffffff" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.topNavIcon}
+            onPress={() => setShowFoodPopup(true)}
+          >
+            <UtensilsCrossed size={24} color="#ffffff" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.topNavIcon, { position: 'relative' }]}
+            onPress={() => router.push('/cart')}
+          >
+            <ShoppingCart size={24} color="#ffffff" />
+            {getTotalItems() > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{getTotalItems()}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.topNavIcon}
+            onPress={() => router.push('/profile')}
+          >
+            <UserCircle size={24} color="#ffffff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -82,30 +114,7 @@ export default function HomeScreen() {
           entering={FadeInLeft.delay(200).springify()}
           style={styles.header}
         >
-          <Text style={styles.subtitle}>How are you feeling today?</Text>
-          
-          <View style={styles.currentMoodContainer}>
-            <LinearGradient
-              colors={['#3b82f620', '#8b5cf620']}
-              style={styles.moodBadge}
-            >
-              <Zap size={16} color="#3b82f6" />
-              <Text style={styles.moodText}>Current mood: {currentMood}</Text>
-            </LinearGradient>
-            
-            {currentMoodAnalysis && (
-              <View style={styles.moodDetailsContainer}>
-                <Text style={styles.moodDetailsText}>
-                  Confidence: {Math.round((currentMoodAnalysis.confidence || 0.85) * 100)}%
-                </Text>
-                {currentMoodAnalysis.timestamp && (
-                  <Text style={styles.moodTimestamp}>
-                    Analyzed {new Date(currentMoodAnalysis.timestamp).toLocaleTimeString()}
-                  </Text>
-                )}
-              </View>
-            )}
-          </View>
+          <Text style={styles.subtitle}>Welcome back! Ready to explore?</Text>
         </Animated.View>
 
         <Animated.View 
@@ -129,27 +138,32 @@ export default function HomeScreen() {
         >
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.actionsGrid}>
-            {quickActions.map((action, index) => (
+            {quickActions.map((action) => (
               <TouchableOpacity
                 key={action.title}
                 style={styles.actionCard}
                 onPress={() => router.push(action.route as any)}
                 activeOpacity={0.8}
               >
-                <LinearGradient
-                  colors={action.gradient}
-                  style={styles.actionGradient}
+                <ImageBackground
+                  source={action.image}
+                  style={styles.actionImageBackground}
+                  imageStyle={styles.actionImage}
                 >
-                  <action.icon size={24} color="#ffffff" />
-                  <Text style={styles.actionTitle}>{action.title}</Text>
-                  <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
-                </LinearGradient>
+                  <View style={styles.actionOverlay}>
+                    <View style={[styles.iconContainer, { backgroundColor: action.iconBg }]}>
+                      <action.icon size={28} color="#ffffff" />
+                    </View>
+                    <Text style={styles.actionTitle}>{action.title}</Text>
+                    <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
+                  </View>
+                </ImageBackground>
               </TouchableOpacity>
             ))}
           </View>
         </Animated.View>
 
-        <MoodCards onMoodSelect={handleMoodSelect} />
+
 
         <CircularDishCards 
           onDishSelect={(dish) => {
@@ -178,6 +192,19 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
       </ScrollView>
+
+      <FoodActionPopup
+        visible={showFoodPopup}
+        onClose={() => setShowFoodPopup(false)}
+        onCook={() => {
+          setShowFoodPopup(false);
+          router.push('/cook-dishes');
+        }}
+        onOrder={() => {
+          setShowFoodPopup(false);
+          router.push('/order-dishes');
+        }}
+      />
     </LinearGradient>
   );
 }
@@ -247,10 +274,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
+  moodEmoji: {
+    fontSize: 20,
+    marginRight: 4,
+  },
   moodText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    color: '#3b82f6',
+    color: '#ffffff',
   },
   moodDetailsContainer: {
     marginTop: 12,
@@ -304,33 +335,70 @@ const styles = StyleSheet.create({
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 16,
+    justifyContent: 'space-between',
   },
   actionCard: {
-    width: (width - 60) / 2,
-    height: 140,
+    width: (width - 64) / 2,
+    height: (width - 64) / 2,
     borderRadius: 20,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  actionGradient: {
+  actionImageBackground: {
     flex: 1,
-    padding: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+  },
+  actionImage: {
+    borderRadius: 20,
+  },
+  actionOverlay: {
+    flex: 1,
+    padding: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Semi-transparent overlay for better text readability
+    borderRadius: 20,
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   actionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#ffffff',
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   actionSubtitle: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Inter-Regular',
     color: '#ffffff',
-    opacity: 0.8,
+    opacity: 0.95,
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   recentActivityContainer: {
     marginBottom: 40,
@@ -367,6 +435,23 @@ const styles = StyleSheet.create({
   },
   activityButtonText: {
     fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#ffffff',
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#ef4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  cartBadgeText: {
+    fontSize: 12,
     fontFamily: 'Inter-SemiBold',
     color: '#ffffff',
   },

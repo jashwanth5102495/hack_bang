@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -7,74 +7,107 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import SwipeCard from '../components/SwipeCard';
 import { useMood } from '../contexts/MoodContext';
 
-const { width, height } = Dimensions.get('window');
+// const { width } = Dimensions.get('window');
 
-// Sample data - in a real app, this would come from an API
-const recommendations = [
+// Mood analyzing cards with images and therapeutic content
+const moodCards = [
   {
-    id: '1',
-    title: 'Lofi Hip Hop',
-    artist: 'ChilledCow',
-    genre: 'Lofi',
-    mood: 'Relaxed',
-    gradient: ['#667eea', '#764ba2'],
-    description: 'Perfect for studying and relaxation. Smooth beats to calm your mind.',
-  },
-  {
-    id: '2',
-    title: 'Energetic Pop',
-    artist: 'Various Artists',
-    genre: 'Pop',
+    id: 'happy',
+    title: 'Happy',
+    emoji: '😊',
     mood: 'Happy',
-    gradient: ['#f093fb', '#f5576c'],
-    description: 'Upbeat tracks to boost your energy and mood. Dance-worthy hits.',
+    gradient: ['rgba(255, 217, 61, 0.3)', 'rgba(255, 107, 107, 0.3)'],
+    description: 'Celebration foods, positive vibes, uplifting content',
+    image: { uri: 'https://images.unsplash.com/photo-1607344645866-009c7d0435c9?w=400&h=300&fit=crop' },
+    content: 'Upbeat vibes, celebration foods, positive energy',
+    benefits: ['Maintain positive energy', 'Social connection', 'Joyful experiences']
   },
   {
-    id: '3',
-    title: 'Ambient Soundscapes',
-    artist: 'Nature Sounds',
-    genre: 'Ambient',
-    mood: 'Peaceful',
-    gradient: ['#4facfe', '#00f2fe'],
-    description: 'Immersive soundscapes for meditation and deep focus.',
+    id: 'sad',
+    title: 'Sad',
+    emoji: '😢',
+    mood: 'Sad',
+    gradient: ['rgba(102, 126, 234, 0.2)', 'rgba(118, 75, 162, 0.2)'],
+    description: 'Comfort foods, warm dishes, cozy places for healing',
+    image: { uri: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=400&h=300&fit=crop' },
+    content: 'Warm foods, cozy places, therapeutic comfort',
+    benefits: ['Emotional healing', 'Comfort and warmth', 'Mood lifting']
   },
   {
-    id: '4',
-    title: 'Indie Rock Vibes',
-    artist: 'Indie Collective',
-    genre: 'Rock',
-    mood: 'Energetic',
-    gradient: ['#fa709a', '#fee140'],
-    description: 'Alternative rock tracks with a modern twist. Perfect for motivation.',
+    id: 'romantic',
+    title: 'Romantic',
+    emoji: '💕',
+    mood: 'Romantic',
+    gradient: ['rgba(255, 154, 158, 0.2)', 'rgba(254, 207, 239, 0.2)'],
+    description: 'Romantic dining, intimate settings, love-focused content',
+    image: { uri: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop' },
+    content: 'Romantic dining, intimate settings, love vibes',
+    benefits: ['Enhance romance', 'Intimate connection', 'Special moments']
   },
   {
-    id: '5',
-    title: 'Jazz Classics',
-    artist: 'Jazz Masters',
-    genre: 'Jazz',
-    mood: 'Sophisticated',
-    gradient: ['#a8edea', '#fed6e3'],
-    description: 'Timeless jazz pieces for a refined listening experience.',
+    id: 'tired',
+    title: 'Tired',
+    emoji: '😴',
+    mood: 'Tired',
+    gradient: ['rgba(168, 237, 234, 0.2)', 'rgba(254, 214, 227, 0.2)'],
+    description: 'Energy foods, quick options, revitalizing content',
+    image: { uri: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&h=300&fit=crop' },
+    content: 'Energy foods, quick options, revitalizing vibes',
+    benefits: ['Boost energy', 'Quick recovery', 'Mental clarity']
   },
   {
-    id: '6',
-    title: 'Electronic Chill',
-    artist: 'Synth Wave',
-    genre: 'Electronic',
-    mood: 'Focused',
-    gradient: ['#d299c2', '#fef9d7'],
-    description: 'Atmospheric electronic music for deep work sessions.',
+    id: 'excited',
+    title: 'Excited',
+    emoji: '🤩',
+    mood: 'Excited',
+    gradient: ['rgba(255, 107, 107, 0.2)', 'rgba(254, 202, 87, 0.2)'],
+    description: 'Power foods, active spaces, high-energy content',
+    image: { uri: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400&h=300&fit=crop' },
+    content: 'Power foods, active spaces, high energy vibes',
+    benefits: ['Sustain excitement', 'High energy', 'Active lifestyle']
   },
+  {
+    id: 'lonely',
+    title: 'Lonely',
+    emoji: '😔',
+    mood: 'Lonely',
+    gradient: ['rgba(116, 185, 255, 0.2)', 'rgba(9, 132, 227, 0.2)'],
+    description: 'Comfort treats, peaceful places, connection-focused content',
+    image: { uri: 'https://images.unsplash.com/photo-1494790108755-2616c27b40e2?w=400&h=300&fit=crop' },
+    content: 'Comfort treats, peaceful places, connection vibes',
+    benefits: ['Feel connected', 'Emotional support', 'Peaceful comfort']
+  },
+  {
+    id: 'hungry',
+    title: 'Hungry',
+    emoji: '🤤',
+    mood: 'Hungry',
+    gradient: ['rgba(253, 121, 168, 0.2)', 'rgba(253, 203, 110, 0.2)'],
+    description: 'Satisfying meals, hearty portions, food-focused content',
+    image: { uri: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop' },
+    content: 'Satisfying meals, hearty portions, food inspiration',
+    benefits: ['Complete satisfaction', 'Hearty nourishment', 'Food joy']
+  },
+  {
+    id: 'moody',
+    title: 'Moody',
+    emoji: '🎭',
+    mood: 'Moody',
+    gradient: ['rgba(162, 155, 254, 0.2)', 'rgba(108, 92, 231, 0.2)'],
+    description: 'Mood-boosting foods, creative spaces, balancing content',
+    image: { uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop' },
+    content: 'Mood-boosting foods, creative spaces, balancing vibes',
+    benefits: ['Emotional balance', 'Creative expression', 'Mood stability']
+  }
 ];
 
 export default function RecommendationsScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likedItems, setLikedItems] = useState<string[]>([]);
-  const [passedItems, setPassedItems] = useState<string[]>([]);
-  const { setMoodAnalysis } = useMood();
+  const { setCurrentMoodAnalysis } = useMood();
 
-  const currentCard = recommendations[currentIndex];
-  const nextCardData = recommendations[currentIndex + 1];
+  const currentCard = moodCards[currentIndex];
+  const nextCardData = moodCards[currentIndex + 1];
 
   const handleSwipeRight = () => {
     if (currentCard) {
@@ -85,36 +118,33 @@ export default function RecommendationsScreen() {
 
   const handleSwipeLeft = () => {
     if (currentCard) {
-      setPassedItems(prev => [...prev, currentCard.id]);
       goToNextCard();
     }
   };
 
   const analyzeMood = () => {
-    const likedRecommendations = recommendations.filter(rec => likedItems.includes(rec.id));
-    
+    const likedMoods = moodCards.filter(card => likedItems.includes(card.id));
+
     // Analyze mood based on liked items
     const moodCounts: { [key: string]: number } = {};
-    const genreCounts: { [key: string]: number } = {};
-    
-    likedRecommendations.forEach(rec => {
-      moodCounts[rec.mood] = (moodCounts[rec.mood] || 0) + 1;
-      genreCounts[rec.genre] = (genreCounts[rec.genre] || 0) + 1;
+
+    likedMoods.forEach(card => {
+      moodCounts[card.mood] = (moodCounts[card.mood] || 0) + 1;
     });
-    
-    const dominantMood = Object.keys(moodCounts).reduce((a, b) => 
-      moodCounts[a] > moodCounts[b] ? a : b, 'Balanced'
+
+    const dominantMood = Object.keys(moodCounts).reduce((a, b) =>
+      moodCounts[a] > moodCounts[b] ? a : b, 'Happy'
     );
-    
-    const dominantGenre = Object.keys(genreCounts).reduce((a, b) => 
-      genreCounts[a] > genreCounts[b] ? a : b, 'Mixed'
-    );
-    
-    return { dominantMood, dominantGenre, likedCount: likedRecommendations.length };
+
+    return {
+      dominantMood,
+      dominantGenre: 'Therapeutic Content',
+      likedCount: likedMoods.length
+    };
   };
 
   const goToNextCard = () => {
-    if (currentIndex < recommendations.length - 1) {
+    if (currentIndex < moodCards.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
       // All cards swiped, analyze mood and show results
@@ -123,12 +153,12 @@ export default function RecommendationsScreen() {
         ...analysis,
         timestamp: Date.now()
       };
-      
+
       console.log('Mood Analysis:', moodAnalysisData);
-      
+
       // Store mood analysis in context
-      setMoodAnalysis(moodAnalysisData);
-      
+      setCurrentMoodAnalysis(moodAnalysisData);
+
       // Navigate to main app with mood analysis complete
       router.replace('/(tabs)');
     }
@@ -145,10 +175,9 @@ export default function RecommendationsScreen() {
   const handleUndo = () => {
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
-      // Remove last action from liked/passed arrays
-      const lastCard = recommendations[currentIndex - 1];
+      // Remove last action from liked arrays
+      const lastCard = moodCards[currentIndex - 1];
       setLikedItems(prev => prev.filter(id => id !== lastCard.id));
-      setPassedItems(prev => prev.filter(id => id !== lastCard.id));
     }
   };
 
@@ -157,24 +186,24 @@ export default function RecommendationsScreen() {
     router.replace('/(tabs)');
   };
 
-  if (currentIndex >= recommendations.length) {
+  if (currentIndex >= moodCards.length) {
     return (
       <LinearGradient
         colors={['#000000', '#0a0a0a', '#1a1a1a']}
         style={styles.container}
       >
         <View style={styles.completedContainer}>
-          <Animated.Text 
+          <Animated.Text
             entering={FadeInUp.delay(200)}
             style={styles.completedTitle}
           >
             Great choices! 🎉
           </Animated.Text>
-          <Animated.Text 
+          <Animated.Text
             entering={FadeInUp.delay(400)}
             style={styles.completedSubtitle}
           >
-            We've curated your perfect playlist based on your preferences
+            We've analyzed your mood and prepared personalized recommendations
           </Animated.Text>
           <Animated.View entering={FadeInUp.delay(600)}>
             <TouchableOpacity
@@ -195,23 +224,23 @@ export default function RecommendationsScreen() {
       style={styles.container}
     >
       {/* Header */}
-      <Animated.View 
+      <Animated.View
         entering={FadeInDown.delay(200)}
         style={styles.header}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.settingsButton}
           onPress={() => router.back()}
         >
           <Settings size={24} color="#ffffff" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Music Recommendations</Text>
+          <Text style={styles.headerTitle}>Mood Analysis</Text>
           <Text style={styles.headerSubtitle}>
-            {currentIndex + 1} of {recommendations.length}
+            {currentIndex + 1} of {moodCards.length}
           </Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.skipButton}
           onPress={handleSkip}
         >
@@ -226,12 +255,12 @@ export default function RecommendationsScreen() {
         {nextCardData && (
           <SwipeCard
             item={nextCardData}
-            onSwipeLeft={() => {}}
-            onSwipeRight={() => {}}
+            onSwipeLeft={() => { }}
+            onSwipeRight={() => { }}
             isActive={false}
           />
         )}
-        
+
         {/* Current Card */}
         {currentCard && (
           <SwipeCard
@@ -244,7 +273,7 @@ export default function RecommendationsScreen() {
       </View>
 
       {/* Action Buttons */}
-      <Animated.View 
+      <Animated.View
         entering={FadeInUp.delay(400)}
         style={styles.actionButtons}
       >
@@ -272,7 +301,7 @@ export default function RecommendationsScreen() {
       </Animated.View>
 
       {/* Instructions */}
-      <Animated.View 
+      <Animated.View
         entering={FadeInUp.delay(600)}
         style={styles.instructions}
       >

@@ -1,23 +1,29 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export interface UserProfile {
-  fullName: string;
-  occupation: string;
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  age?: number;
+  bio?: string;
   interests: string[];
-  joinedDate: string;
-  moodSessions?: number;
-  connections?: number;
-  daysActive?: number;
+  profileImage?: string;
+  currentMood: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 interface UserContextType {
-  user: UserProfile | null;
-  setUser: (user: UserProfile) => void;
-  updateUser: (updates: Partial<UserProfile>) => void;
-  saveUserData: (userData: Partial<UserProfile>) => Promise<void>;
-  loadUserData: () => Promise<void>;
-  logout: () => Promise<void>;
+  user: User | null;
+  setUser: (user: User | null) => void;
+  updateUser: (updates: Partial<User>) => void;
+  saveUserData: (userData: any) => Promise<void>;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  register: (userData: Partial<User> & { email: string; password: string }) => Promise<boolean>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -30,66 +36,87 @@ export const useUser = () => {
   return context;
 };
 
-export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
+interface UserProviderProps {
+  children: ReactNode;
+}
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
+export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
 
-  const loadUserData = async () => {
+  const updateUser = (updates: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...updates });
+    }
+  };
+
+  const saveUserData = async (userData: any) => {
     try {
-      const userData = await AsyncStorage.getItem('userData');
-      if (userData) {
-        setUser(JSON.parse(userData));
+      // Update the current user with the new data
+      if (user) {
+        const updatedUser: User = {
+          ...user,
+          name: userData.fullName || user.name,
+          interests: userData.interests || user.interests,
+          // Add any additional fields as needed
+        };
+        setUser(updatedUser);
+        console.log('User data saved successfully:', updatedUser);
       }
     } catch (error) {
-      console.error('Error loading user data:', error);
-    }
-  };
-
-  const saveUserData = async (userData: Partial<UserProfile>) => {
-    try {
-      const currentUser = user || {
-        fullName: '',
-        occupation: '',
-        interests: [],
-        joinedDate: new Date().toISOString(),
-        moodSessions: 0,
-        connections: 0,
-        daysActive: 1,
-      };
-
-      const updatedUser = { ...currentUser, ...userData };
-      setUser(updatedUser);
-      await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));
-      await AsyncStorage.setItem('user', 'authenticated'); // For auth check
-    } catch (error) {
       console.error('Error saving user data:', error);
+      throw error;
     }
   };
 
-  const updateUser = async (updates: Partial<UserProfile>) => {
-    if (!user) return;
-    
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const updatedUser = { ...user, ...updates };
-      setUser(updatedUser);
-      await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));
+      // Mock login - replace with actual API call
+      const mockUser: User = {
+        id: '1',
+        name: 'Alex Johnson',
+        email: email,
+        age: 25,
+        bio: 'Love exploring new places and meeting interesting people!',
+        interests: ['Travel', 'Food', 'Music', 'Photography'],
+        currentMood: 'Happy',
+        profileImage: 'https://via.placeholder.com/150x150/3b82f6/ffffff?text=AJ'
+      };
+      
+      setUser(mockUser);
+      return true;
     } catch (error) {
-      console.error('Error updating user data:', error);
+      console.error('Login error:', error);
+      return false;
     }
   };
 
-  const logout = async () => {
+  const register = async (userData: Partial<User> & { email: string; password: string }): Promise<boolean> => {
     try {
-      await AsyncStorage.removeItem('user');
-      await AsyncStorage.removeItem('userData');
-      setUser(null);
+      // Mock registration - replace with actual API call
+      const newUser: User = {
+        id: Date.now().toString(),
+        name: userData.name || 'New User',
+        email: userData.email,
+        age: userData.age,
+        bio: userData.bio,
+        interests: userData.interests || [],
+        currentMood: 'Happy',
+        profileImage: `https://via.placeholder.com/150x150/3b82f6/ffffff?text=${userData.name?.charAt(0) || 'U'}`
+      };
+      
+      setUser(newUser);
+      return true;
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('Registration error:', error);
+      return false;
     }
   };
+
+  const logout = () => {
+    setUser(null);
+  };
+
+  const isAuthenticated = user !== null;
 
   return (
     <UserContext.Provider value={{
@@ -97,10 +124,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setUser,
       updateUser,
       saveUserData,
-      loadUserData,
+      isAuthenticated,
+      login,
       logout,
+      register
     }}>
       {children}
     </UserContext.Provider>
   );
-}
+};

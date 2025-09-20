@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Chrome as Home, Heart, MessageCircle, User, Zap, Play } from 'lucide-react-native';
+import { Home, Heart, MessageCircle, Sparkles, PlayCircle } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import { Platform } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -77,7 +77,7 @@ export default function TabLayout() {
         options={{
           title: 'Mood',
           tabBarIcon: ({ size, color }) => (
-            <Zap size={size} color={color} />
+            <Sparkles size={size} color={color} />
           ),
         }}
       />
@@ -86,7 +86,7 @@ export default function TabLayout() {
         options={{
           title: 'Reels',
           tabBarIcon: ({ size, color }) => (
-            <Play size={size} color={color} />
+            <PlayCircle size={size} color={color} />
           ),
         }}
       />
@@ -106,12 +106,6 @@ export default function TabLayout() {
           tabBarIcon: ({ size, color }) => (
             <MessageCircle size={size} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          href: null, // This hides the tab from navigation
         }}
       />
     </Tabs>

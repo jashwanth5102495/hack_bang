@@ -2,11 +2,12 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Music, ChefHat, Clock, Star } from 'lucide-react-native';
+import { ChefHat, Clock, Users, Star, Heart, Zap, ShoppingCart } from 'lucide-react-native';
 import { useMood, FoodRecommendation } from '../contexts/MoodContext';
+import { router } from 'expo-router';
 
 export default function MoodRecommendations() {
-  const { currentMoodAnalysis, getFoodRecommendations, getMusicRecommendations } = useMood();
+  const { currentMoodAnalysis, getFoodRecommendations, getTherapeuticRecommendations } = useMood();
   
   if (!currentMoodAnalysis) {
     return (
@@ -14,9 +15,9 @@ export default function MoodRecommendations() {
         entering={FadeInDown.delay(1200).springify()}
         style={styles.container}
       >
-        <Text style={styles.sectionTitle}>Personalized Recommendations</Text>
+        <Text style={styles.sectionTitle}>Personalized Food Recommendations</Text>
         <Text style={styles.noMoodText}>
-          Complete the mood assessment to get personalized food and music recommendations!
+          Complete the mood assessment to get personalized food recommendations!
         </Text>
         <TouchableOpacity style={styles.assessmentButton}>
           <Text style={styles.assessmentButtonText}>Start Assessment</Text>
@@ -26,7 +27,7 @@ export default function MoodRecommendations() {
   }
 
   const foodRecommendations = getFoodRecommendations();
-  const musicRecommendations = getMusicRecommendations();
+  const therapeuticRecommendations = getTherapeuticRecommendations(currentMoodAnalysis?.dominantMood || 'Happy');
 
   const handleFoodPress = (food: FoodRecommendation) => {
     Alert.alert(
@@ -34,15 +35,15 @@ export default function MoodRecommendations() {
       `${food.description}\n\n🍽️ ${food.cuisine} • ⏱️ ${food.cookingTime} • 📊 ${food.difficulty}`,
       [
         {
-          text: '👨‍🍳 Cook',
+          text: '👨‍🍳 Cook Recipes',
           onPress: () => {
-            Alert.alert('Recipe', `Ingredients for ${food.name}:\n\n${food.ingredients.join('\n• ')}\n\nFull recipe coming soon!`);
+            router.push('/cook-dishes');
           }
         },
         {
-          text: '🛒 Order',
+          text: '🛒 Order Food',
           onPress: () => {
-            Alert.alert('Order', `Finding restaurants near you that serve ${food.name}...`);
+            router.push('/order-dishes');
           }
         },
         {
@@ -53,15 +54,21 @@ export default function MoodRecommendations() {
     );
   };
 
-  const handleMusicPress = (music: any) => {
+  const handleTherapyPress = (content: any) => {
     Alert.alert(
-      music.title,
-      `${music.description}\n\n🎵 ${music.genre} • 🎭 ${music.mood}`,
+      content.title,
+      `${content.description}\n\n✨ ${content.benefit}\n\n🍽️ Recommended dishes:\n${content.dishes?.join(', ') || 'Various therapeutic options'}`,
       [
         {
-          text: '🎧 Listen',
+          text: '🍽️ Explore Dishes',
           onPress: () => {
-            Alert.alert('Music Player', `Now playing: ${music.title} by ${music.artist}`);
+            Alert.alert('Dishes', `Therapeutic dishes for ${content.mood} mood:\n\n${content.dishes?.map((dish: string) => `• ${dish}`).join('\n') || 'Coming soon!'}`);
+          }
+        },
+        {
+          text: '💡 Learn More',
+          onPress: () => {
+            Alert.alert('Therapy Info', `${content.benefit}\n\nThis therapeutic approach is designed to help you feel better when you're ${content.mood.toLowerCase()}.`);
           }
         },
         {
@@ -78,9 +85,9 @@ export default function MoodRecommendations() {
       style={styles.container}
     >
       <View style={styles.header}>
-        <Text style={styles.sectionTitle}>For Your {moodAnalysis.dominantMood} Mood</Text>
+        <Text style={styles.sectionTitle}>For Your {currentMoodAnalysis.dominantMood} Mood</Text>
         <Text style={styles.sectionSubtitle}>
-          Based on your preferences • {moodAnalysis.likedCount} songs liked
+          Based on your preferences • {currentMoodAnalysis.likedCount} foods recommended
         </Text>
       </View>
 
@@ -108,7 +115,13 @@ export default function MoodRecommendations() {
                   colors={['#1f2937', '#374151']}
                   style={styles.cardGradient}
                 >
-                  <Text style={styles.foodEmoji}>{food.image}</Text>
+                  <Text style={styles.foodEmoji}>
+                    {food.cuisine === 'Indian' ? '🍛' : 
+                     food.cuisine === 'Italian' ? '🍝' : 
+                     food.cuisine === 'Japanese' ? '🍣' : 
+                     food.cuisine === 'Mexican' ? '🌮' : 
+                     food.cuisine === 'French' ? '🍲' : '🍽️'}
+                  </Text>
                   <Text style={styles.foodName}>{food.name}</Text>
                   <Text style={styles.foodCuisine}>{food.cuisine}</Text>
                   
@@ -131,40 +144,46 @@ export default function MoodRecommendations() {
         </View>
       )}
 
-      {/* Music Recommendations */}
-      {musicRecommendations.length > 0 && (
+      {/* Therapeutic Content */}
+      {therapeuticRecommendations.length > 0 && (
         <View style={styles.categorySection}>
           <View style={styles.categoryHeader}>
-            <Music size={20} color="#8b5cf6" />
-            <Text style={styles.categoryTitle}>Recommended Music</Text>
+            <Zap size={20} color="#10b981" />
+            <Text style={styles.categoryTitle}>Mood Therapy</Text>
           </View>
           
-          <View style={styles.musicList}>
-            {musicRecommendations.slice(0, 3).map((music, index) => (
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalScroll}
+          >
+            {therapeuticRecommendations.map((content, index) => (
               <TouchableOpacity
-                key={music.id}
-                style={styles.musicCard}
-                onPress={() => handleMusicPress(music)}
+                key={content.id}
+                style={styles.therapyCard}
+                onPress={() => handleTherapyPress(content)}
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={['#312e81', '#1e1b4b']}
-                  style={styles.musicGradient}
+                  colors={['#065f46', '#10b981']}
+                  style={styles.cardGradient}
                 >
-                  <View style={styles.musicInfo}>
-                    <Text style={styles.musicTitle}>{music.title}</Text>
-                    <Text style={styles.musicArtist}>{music.artist}</Text>
-                    <Text style={styles.musicGenre}>{music.genre} • {music.mood}</Text>
-                  </View>
-                  <View style={styles.musicAction}>
-                    <Star size={16} color="#fbbf24" />
+                  <Text style={styles.therapyEmoji}>{content.image}</Text>
+                  <Text style={styles.therapyTitle}>{content.title}</Text>
+                  <Text style={styles.therapyDescription}>{content.description}</Text>
+                  
+                  <View style={styles.therapyInfo}>
+                    <View style={styles.benefitBadge}>
+                      <Text style={styles.benefitText}>Therapeutic</Text>
+                    </View>
                   </View>
                 </LinearGradient>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         </View>
       )}
+
     </Animated.View>
   );
 }
@@ -275,38 +294,43 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
   },
-  musicList: {
-    gap: 8,
-  },
-  musicCard: {
+  therapyCard: {
+    width: 160,
+    height: 180,
+    marginRight: 12,
     borderRadius: 12,
     overflow: 'hidden',
   },
-  musicGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
+  therapyEmoji: {
+    fontSize: 32,
   },
-  musicInfo: {
-    flex: 1,
-  },
-  musicTitle: {
-    fontSize: 16,
+  therapyTitle: {
+    fontSize: 14,
     fontWeight: '600',
     color: '#ffffff',
-    marginBottom: 2,
+    textAlign: 'center',
+    marginBottom: 4,
   },
-  musicArtist: {
-    fontSize: 14,
-    color: '#d1d5db',
-    marginBottom: 2,
+  therapyDescription: {
+    fontSize: 11,
+    color: '#d1fae5',
+    textAlign: 'center',
+    lineHeight: 14,
+    flex: 1,
   },
-  musicGenre: {
-    fontSize: 12,
-    color: '#9ca3af',
+  therapyInfo: {
+    alignItems: 'center',
+    width: '100%',
   },
-  musicAction: {
-    padding: 8,
+  benefitBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  benefitText: {
+    fontSize: 10,
+    color: '#ffffff',
+    fontWeight: '600',
   },
 });

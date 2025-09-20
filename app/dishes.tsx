@@ -1,18 +1,22 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowLeft, ChefHat, Clock, Star, Utensils } from 'lucide-react-native';
+import { ArrowLeft, ChefHat, Clock, Star, Utensils, ShoppingCart } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInLeft } from 'react-native-reanimated';
 import { useMood } from '../contexts/MoodContext';
+import { useCart } from '../contexts/CartContext';
+import { initiatePayment, trackOrder } from '../components/RazorpayPayment';
 
 const { width } = Dimensions.get('window');
 
 // Food recommendations are now handled by MoodContext
 
 export default function DishesScreen() {
-  const { moodAnalysis, getFoodRecommendations, getTherapeuticMood } = useMood();
-  const currentMood = moodAnalysis?.dominantMood || 'moody';
+  const { currentMoodAnalysis, getFoodRecommendations, getTherapeuticMood } = useMood();
+  const { addToCart, cartItems, getTotalItems } = useCart();
+  
+  const currentMood = currentMoodAnalysis?.dominantMood || 'moody';
   const therapeuticMood = getTherapeuticMood(currentMood);
   const dishes = getFoodRecommendations(currentMood);
 
@@ -29,6 +33,56 @@ export default function DishesScreen() {
   };
 
   const displayMood = therapeuticMood === 'Calming' ? 'calming' : currentMood.toLowerCase();
+
+  const handleDishPress = (dish: any) => {
+    Alert.alert(
+      dish.name,
+      `${dish.cuisine} • ${dish.cookingTime} • ${dish.difficulty}\n\nPrice: ₹${dish.price}`,
+      [
+        {
+          text: '🛒 Order Now',
+          onPress: () => orderDish(dish)
+        },
+        {
+          text: '👨‍🍳 View Recipe',
+          onPress: () => {
+            router.push('/cook-dishes');
+          }
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        }
+      ]
+    );
+  };
+
+  const orderDish = (dish: any) => {
+    Alert.alert(
+      `Add ${dish.name} to Cart?`,
+      `Price: ₹${dish.price}`,
+      [
+        {
+          text: 'Add to Cart',
+          onPress: () => {
+            addToCart({
+              id: dish.id,
+              name: dish.name,
+              price: dish.price,
+              cuisine: dish.cuisine,
+              cookingTime: dish.cookingTime,
+              image: dish.image
+            });
+          }
+        },
+        {
+          text: 'View Cart',
+          onPress: () => router.push('/cart')
+        },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
 
   return (
     <LinearGradient
@@ -47,6 +101,17 @@ export default function DishesScreen() {
           entering={FadeInLeft.delay(200).springify()}
           style={styles.header}
         >
+          <TouchableOpacity 
+            style={styles.cartButton}
+            onPress={() => router.push('/cart')}
+          >
+            <ShoppingCart size={24} color="#fff" />
+            {getTotalItems() > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{getTotalItems()}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <Text style={styles.moodEmoji}>{moodEmojis[displayMood as keyof typeof moodEmojis]}</Text>
           <Text style={styles.title}>
             {therapeuticMood === 'Calming' 
@@ -65,8 +130,8 @@ export default function DishesScreen() {
           style={styles.section}
         >
           <View style={styles.sectionHeader}>
-            <Utensils size={24} color="#f97316" />
-            <Text style={styles.sectionTitle}>Recommended Dishes</Text>
+            <ShoppingCart size={24} color="#10b981" />
+            <Text style={styles.sectionTitle}>Order Dishes</Text>
           </View>
 
           <View style={styles.dishesGrid}>
@@ -77,16 +142,12 @@ export default function DishesScreen() {
                 style={styles.dishCard}
               >
                 <TouchableOpacity
-                  style={styles.dishCardContent}
                   activeOpacity={0.8}
-                  onPress={() => {
-                    // Handle dish selection
-                    console.log('Selected dish:', dish.name);
-                  }}
+                  onPress={() => handleDishPress(dish)}
                 >
                   <View style={styles.dishCard}>
                     <Image 
-                      source={{ uri: dish.image }}
+                      source={dish.image}
                       style={styles.dishImage}
                       resizeMode="cover"
                     />
@@ -107,6 +168,14 @@ export default function DishesScreen() {
                           <Text style={styles.dishDetailText}>{dish.difficulty}</Text>
                         </View>
                       </View>
+
+                      <View style={styles.priceSection}>
+                        <Text style={styles.priceText}>₹{dish.price}</Text>
+                        <View style={styles.orderHints}>
+                          <ShoppingCart size={12} color="#10b981" />
+                          <Text style={styles.orderHintText}>Tap to Order</Text>
+                        </View>
+                      </View>
                     </LinearGradient>
                   </View>
                 </TouchableOpacity>
@@ -120,12 +189,12 @@ export default function DishesScreen() {
           style={styles.cookingTipsSection}
         >
           <View style={styles.sectionHeader}>
-            <ChefHat size={24} color="#3b82f6" />
-            <Text style={styles.sectionTitle}>Cooking Tips</Text>
+            <ShoppingCart size={24} color="#10b981" />
+            <Text style={styles.sectionTitle}>Delivery Info</Text>
           </View>
           
           <View style={styles.tipCard}>
-            <Text style={styles.tipTitle}>Perfect for your {currentMood} mood</Text>
+            <Text style={styles.tipTitle}>Perfect for your {String(currentMood)} mood</Text>
             <Text style={styles.tipText}>
               These dishes are specially selected to complement your current emotional state and help enhance your mood through delicious, comforting flavors.
             </Text>
@@ -255,6 +324,34 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     opacity: 0.9,
   },
+  priceSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  priceText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Bold',
+    color: '#10b981',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  orderHints: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  orderHintText: {
+    fontSize: 10,
+    fontFamily: 'Inter-Medium',
+    color: '#10b981',
+  },
   cookingTipsSection: {
     marginBottom: 40,
   },
@@ -274,5 +371,32 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#a1a1aa',
     lineHeight: 20,
+  },
+  cartButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#ef4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cartBadgeText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Bold',
+    color: '#ffffff',
   },
 });

@@ -167,7 +167,7 @@ export default function ChatScreen() {
                 style={styles.chatCardGradient}
               >
                 <View style={styles.chatInfo}>
-                  <View style={styles.chatHeader}>
+                  <View style={styles.chatItemHeader}>
                     <View style={styles.nameContainer}>
                       <Text style={styles.chatName}>{chat.name}</Text>
                       {chat.online && <View style={styles.onlineIndicator} />}
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   chatInfo: {
     flex: 1,
   },
-  chatHeader: {
+  chatItemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

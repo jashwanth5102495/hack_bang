@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { 
   useAnimatedStyle, 
@@ -18,12 +18,15 @@ interface SwipeCardProps {
   item: {
     id: string;
     title: string;
+    emoji?: string;
     artist?: string;
     genre?: string;
     mood?: string;
-    image?: string;
+    image?: any;
     gradient: string[];
     description?: string;
+    content?: string;
+    benefits?: string[];
   };
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
@@ -116,54 +119,81 @@ export default function SwipeCard({ item, onSwipeLeft, onSwipeRight, isActive }:
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[styles.card, animatedStyle]}>
-        <LinearGradient
-          colors={item.gradient}
-          style={styles.cardGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          {/* Like Indicator */}
-          <Animated.View style={[styles.indicator, styles.likeIndicator, likeIndicatorStyle]}>
-            <Text style={styles.indicatorText}>LIKE</Text>
-          </Animated.View>
+        {item.image ? (
+          <ImageBackground
+            source={item.image}
+            style={styles.cardBackground}
+            resizeMode="cover"
+          >
+            <LinearGradient
+              colors={item.gradient}
+              style={styles.cardGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              {/* Like Indicator */}
+              <Animated.View style={[styles.indicator, styles.likeIndicator, likeIndicatorStyle]}>
+                <Text style={styles.indicatorText}>LIKE</Text>
+              </Animated.View>
 
-          {/* Dislike Indicator */}
-          <Animated.View style={[styles.indicator, styles.dislikeIndicator, dislikeIndicatorStyle]}>
-            <Text style={styles.indicatorText}>PASS</Text>
-          </Animated.View>
+              {/* Dislike Indicator */}
+              <Animated.View style={[styles.indicator, styles.dislikeIndicator, dislikeIndicatorStyle]}>
+                <Text style={styles.indicatorText}>PASS</Text>
+              </Animated.View>
 
-          {/* Card Content */}
-          <View style={styles.cardContent}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              {item.artist && (
-                <Text style={styles.cardArtist}>{item.artist}</Text>
-              )}
-            </View>
+              {/* Card Content */}
+              <View style={styles.cardContent}>
+                <View style={styles.cardHeader}>
+                  {item.emoji && (
+                    <Text style={styles.cardEmoji}>{item.emoji}</Text>
+                  )}
+                  <Text style={styles.cardTitle}>{item.title}</Text>
+                  {item.artist && (
+                    <Text style={styles.cardArtist}>{item.artist}</Text>
+                  )}
+                </View>
 
-            <View style={styles.cardBody}>
-              {item.description && (
-                <Text style={styles.cardDescription}>{item.description}</Text>
-              )}
-              
-              <View style={styles.tagContainer}>
-                {item.genre && (
-                  <View style={styles.tag}>
-                    <Text style={styles.tagText}>{item.genre}</Text>
+                <View style={styles.cardBody}>
+                  {item.content && (
+                    <Text style={styles.cardDescription}>{item.content}</Text>
+                  )}
+                  
+                  {item.benefits && (
+                    <View style={styles.benefitsContainer}>
+                      {item.benefits.map((benefit, index) => (
+                        <View key={index} style={styles.benefitItem}>
+                          <Text style={styles.benefitText}>• {benefit}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  
+                  <View style={styles.tagContainer}>
+                    {item.mood && (
+                      <View style={styles.tag}>
+                        <Text style={styles.tagText}>{item.mood}</Text>
+                      </View>
+                    )}
                   </View>
-                )}
-                {item.mood && (
-                  <View style={styles.tag}>
-                    <Text style={styles.tagText}>{item.mood}</Text>
-                  </View>
-                )}
+                </View>
+              </View>
+            </LinearGradient>
+          </ImageBackground>
+        ) : (
+          <LinearGradient
+            colors={item.gradient}
+            style={styles.cardGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            {/* Fallback content for cards without images */}
+            <View style={styles.cardContent}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>{item.title}</Text>
               </View>
             </View>
-          </View>
-
-          {/* Glassmorphism overlay */}
-          <BlurView intensity={20} style={styles.blurOverlay} />
-        </LinearGradient>
+          </LinearGradient>
+        )}
       </Animated.View>
     </GestureDetector>
   );
@@ -182,6 +212,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 30,
   },
+  cardBackground: {
+    flex: 1,
+  },
   cardGradient: {
     flex: 1,
     position: 'relative',
@@ -192,7 +225,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   cardContent: {
     flex: 1,
@@ -204,13 +237,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 40,
   },
+  cardEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
+  },
   cardTitle: {
     fontSize: 32,
     fontFamily: 'Poppins-SemiBold',
     color: '#ffffff',
     textAlign: 'center',
     marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
@@ -228,10 +265,29 @@ const styles = StyleSheet.create({
   cardDescription: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 24,
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  benefitsContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  benefitItem: {
+    marginBottom: 8,
+  },
+  benefitText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   tagContainer: {
     flexDirection: 'row',

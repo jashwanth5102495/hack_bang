@@ -75,7 +75,7 @@ export default function LoginScreen() {
         </Animated.View>
 
         <Text style={styles.disclaimer}>
-          We'll send you a verification code to confirm your number
+          We&apos;ll send you a verification code to confirm your number
         </Text>
       </Animated.View>
     </LinearGradient>

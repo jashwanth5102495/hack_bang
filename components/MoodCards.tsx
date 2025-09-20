@@ -14,112 +14,103 @@ const { width } = Dimensions.get('window');
 
 interface MoodCard {
   id: string;
-  mood: string;
+  title: string;
   emoji: string;
   description: string;
-  color: string;
   gradient: string[];
   tips: string[];
   image: any;
-  musicType: string;
+  therapeuticContent: string;
   foodType: string;
 }
 
 const moodCards: MoodCard[] = [
   {
-    id: '1',
-    mood: 'Happy',
+    id: 'happy',
+    title: 'Happy',
     emoji: '😊',
-    description: 'Upbeat music, celebration foods, positive vibes',
-    color: '#ffd93d',
+    description: 'Upbeat vibes, celebration foods, positive energy',
     gradient: ['#ffd93d', '#ff6b6b'],
     tips: ['Share your joy', 'Try new activities', 'Connect with friends'],
-    image: require('../img/happy.png'),
-    musicType: 'Upbeat music',
+    image: { uri: 'https://images.unsplash.com/photo-1607344645866-009c7d0435c9?w=400&h=300&fit=crop' },
+    therapeuticContent: 'Keep the positive energy flowing',
     foodType: 'Celebration foods'
   },
   {
-    id: '2',
-    mood: 'Sad',
+    id: 'sad',
+    title: 'Sad',
     emoji: '😢',
-    description: 'Comfort songs, warm foods, cozy places',
-    color: '#74b9ff',
-    gradient: ['#74b9ff', '#0984e3'],
-    tips: ['Take deep breaths', 'Listen to calming music', 'Talk to someone'],
-    image: require('../img/sad.png'),
-    musicType: 'Comfort songs',
-    foodType: 'Warm foods'
+    description: 'Comfort foods, warm dishes, cozy places',
+    gradient: ['#667eea', '#764ba2'],
+    tips: ['Practice self-care', 'Reach out to friends', 'Try gentle activities'],
+    image: { uri: 'https://images.unsplash.com/photo-1544027993-37dbfe43562a?w=400&h=300&fit=crop' },
+    therapeuticContent: 'Uplifting content to brighten your mood',
+    foodType: 'Warm comfort foods'
   },
   {
-    id: '3',
-    mood: 'Romantic',
+    id: 'romantic',
+    title: 'Romantic',
     emoji: '💕',
-    description: 'Love ballads, romantic dining, intimate settings',
-    color: '#fd79a8',
-    gradient: ['#fd79a8', '#e84393'],
-    tips: ['Plan romantic moments', 'Express your feelings', 'Create intimate atmosphere'],
-    image: require('../img/Romantic.png'),
-    musicType: 'Love ballads',
+    description: 'Romantic dining, intimate settings, love vibes',
+    gradient: ['#ff9a9e', '#fecfef'],
+    tips: ['Plan a date', 'Express your feelings', 'Create romantic moments'],
+    image: { uri: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop' },
+    therapeuticContent: 'Romantic content for special moments',
     foodType: 'Romantic dining'
   },
   {
-    id: '4',
-    mood: 'Tired',
+    id: 'tired',
+    title: 'Tired',
     emoji: '😴',
-    description: 'Relaxing sounds, energy foods, quick options',
-    color: '#a29bfe',
-    gradient: ['#a29bfe', '#6c5ce7'],
-    tips: ['Rest and recharge', 'Choose easy meals', 'Listen to calming music'],
-    image: require('../img/Tired.png'),
-    musicType: 'Relaxing sounds',
-    foodType: 'Energy foods'
+    description: 'Energy foods, quick options, relaxing vibes',
+    gradient: ['#a8edea', '#fed6e3'],
+    tips: ['Get enough rest', 'Take breaks', 'Practice relaxation'],
+    image: { uri: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400&h=300&fit=crop' },
+    therapeuticContent: 'Energizing content to help you recharge',
+    foodType: 'Energy-boosting foods'
   },
   {
-    id: '5',
-    mood: 'Excited',
+    id: 'excited',
+    title: 'Excited',
     emoji: '🤩',
-    description: 'High energy music, power foods, active spaces',
-    color: '#ff7675',
-    gradient: ['#ff7675', '#d63031'],
-    tips: ['Channel your energy', 'Share excitement', 'Plan adventures'],
-    image: require('../img/Excited.png'),
-    musicType: 'High energy music',
+    description: 'Power foods, active spaces, high energy vibes',
+    gradient: ['#ff6b6b', '#feca57'],
+    tips: ['Channel your energy', 'Try new things', 'Share your excitement'],
+    image: { uri: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400&h=300&fit=crop' },
+    therapeuticContent: 'High-energy content to match your vibe',
     foodType: 'Power foods'
   },
   {
-    id: '6',
-    mood: 'Lonely',
+    id: 'lonely',
+    title: 'Lonely',
     emoji: '😔',
-    description: 'Soulful music, comfort treats, peaceful places',
-    color: '#636e72',
-    gradient: ['#636e72', '#2d3436'],
-    tips: ['Connect with others', 'Practice self-care', 'Find peaceful moments'],
-    image: require('../img/Lonely.png'),
-    musicType: 'Soulful music',
+    description: 'Comfort treats, peaceful places, soulful vibes',
+    gradient: ['#74b9ff', '#0984e3'],
+    tips: ['Connect with others', 'Join communities', 'Practice self-compassion'],
+    image: { uri: 'https://images.unsplash.com/photo-1494790108755-2616c27b40e2?w=400&h=300&fit=crop' },
+    therapeuticContent: 'Uplifting content to help you feel connected',
     foodType: 'Comfort treats'
   },
   {
-    id: '7',
-    mood: 'Hungry',
+    id: 'hungry',
+    title: 'Hungry',
     emoji: '🤤',
-    description: 'Cooking playlists, satisfying meals, hearty portions',
-    color: '#00b894',
-    gradient: ['#00b894', '#00cec9'],
-    tips: ['Explore new recipes', 'Cook with music', 'Enjoy hearty meals'],
-    image: require('../img/Hungry.png'),
-    musicType: 'Cooking playlists',
+    description: 'Satisfying meals, hearty portions, cooking vibes',
+    gradient: ['#fd79a8', '#fdcb6e'],
+    tips: ['Plan your meals', 'Try new recipes', 'Enjoy the cooking process'],
+    image: { uri: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop' },
+    therapeuticContent: 'Cooking content and food inspiration',
     foodType: 'Satisfying meals'
   },
   {
-    id: '8',
-    mood: 'Moody',
+    id: 'moody',
+    title: 'Moody',
     emoji: '🎭',
-    description: 'Alternative music, mood-boosting foods, creative spaces',
-    color: '#fdcb6e',
-    gradient: ['#fdcb6e', '#e17055'],
-    tips: ['Express creativity', 'Try alternative music', 'Boost your mood'],
-    image: require('../img/Moody.png'),
-    musicType: 'Alternative music',
+    description: 'Mood-boosting foods, creative spaces, alternative vibes',
+    gradient: ['#a29bfe', '#6c5ce7'],
+    tips: ['Embrace your complexity', 'Express yourself creatively', 'Find balance'],
+    image: { uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop' },
+    therapeuticContent: 'Mood-balancing content to help you find peace',
     foodType: 'Mood-boosting foods'
   }
 ];
@@ -129,11 +120,11 @@ interface MoodCardsProps {
 }
 
 export default function MoodCards({ onMoodSelect }: MoodCardsProps) {
-  const { moodAnalysis, currentMoodAnalysis, setCurrentMoodAnalysis, analyzeMoodFromSelection, isAnalyzing } = useMood();
+  const { currentMoodAnalysis, setCurrentMoodAnalysis, analyzeMoodFromSelection, isAnalyzing } = useMood();
   const scrollX = useSharedValue(0);
   const scrollViewRef = useRef<ScrollView>(null);
   
-  const currentMood = moodAnalysis?.dominantMood || 'Unknown';
+  const currentMood = currentMoodAnalysis?.dominantMood || 'Unknown';
 
   useEffect(() => {
     // Auto-scroll animation from left to right
@@ -151,14 +142,14 @@ export default function MoodCards({ onMoodSelect }: MoodCardsProps) {
 
   const handleMoodPress = async (mood: MoodCard) => {
     // Trigger AI mood analysis
-    await analyzeMoodFromSelection(mood.mood);
+    await analyzeMoodFromSelection(mood.title);
     if (onMoodSelect) {
       onMoodSelect(mood);
     }
   };
 
-  const renderMoodCard = (mood: MoodCard, index: number) => {
-    const isCurrentMood = currentMoodAnalysis?.dominantMood === mood.mood;
+  const MoodCardItem = ({ mood, index }: { mood: MoodCard; index: number }) => {
+    const isCurrentMood = currentMoodAnalysis?.dominantMood === mood.title;
     
     const animatedStyle = useAnimatedStyle(() => {
       const inputRange = [
@@ -207,7 +198,7 @@ export default function MoodCards({ onMoodSelect }: MoodCardsProps) {
             </View>
             
             <View style={styles.contentContainer}>
-              <Text style={styles.moodName}>{mood.mood}</Text>
+              <Text style={styles.moodName}>{mood.title}</Text>
               <Text style={styles.moodDescription}>{mood.description}</Text>
               
               {isCurrentMood && (
@@ -223,8 +214,8 @@ export default function MoodCards({ onMoodSelect }: MoodCardsProps) {
               )}
               
               <View style={styles.featuresContainer}>
-                <Text style={styles.featureText}>🎵 {mood.musicType}</Text>
                 <Text style={styles.featureText}>🍽️ {mood.foodType}</Text>
+                <Text style={styles.featureText}>✨ {mood.therapeuticContent}</Text>
               </View>
             </View>
           </Animated.View>
@@ -257,11 +248,9 @@ export default function MoodCards({ onMoodSelect }: MoodCardsProps) {
         }}
         scrollEventThrottle={16}
       >
-        {moodCards.map((mood, index) => renderMoodCard(mood, index))}
-        {/* Duplicate for infinite scroll effect */}
-        {moodCards.map((mood, index) => 
-          renderMoodCard({ ...mood, id: `${mood.id}_dup` }, index + moodCards.length)
-        )}
+        {moodCards.map((mood, index) => (
+          <MoodCardItem key={mood.id} mood={mood} index={index} />
+        ))}
       </ScrollView>
     </Animated.View>
   );
@@ -287,11 +276,11 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingHorizontal: 24,
-    paddingRight: width,
+    paddingRight: 100,
   },
   cardContainer: {
     width: 160,
-    marginRight: 20,
+    marginRight: 16,
   },
   moodCard: {
     borderRadius: 16,

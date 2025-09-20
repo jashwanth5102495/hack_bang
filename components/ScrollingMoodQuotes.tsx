@@ -181,7 +181,7 @@ export default function ScrollingMoodQuotes() {
   }, [currentMood]);
 
   useEffect(() => {
-    // Cycle through different quotes every 4 seconds
+    // Cycle through different quotes every 10 seconds
     const quoteTimer = setInterval(() => {
       setCurrentIndex((prevIndex) => 
         (prevIndex + 1) % Math.max(1, relevantSnippets.length)
@@ -190,26 +190,26 @@ export default function ScrollingMoodQuotes() {
       scrollX.value = 0;
       // Start scrolling animation for the new quote
       scrollX.value = withRepeat(
-        withTiming(width, { 
-          duration: 6000,
+        withTiming(width * 0.8, { 
+          duration: 15000, // Much slower scrolling - 15 seconds
           easing: Easing.linear 
         }),
         -1,
         false
       );
-    }, 4000);
+    }, 10000); // 10 seconds per quote
 
-    // Initial scroll animation
+    // Initial scroll animation with delay
     const initialTimer = setTimeout(() => {
       scrollX.value = withRepeat(
-        withTiming(width, { 
-          duration: 6000,
+        withTiming(width * 0.8, { 
+          duration: 15000, // 15 seconds for full scroll
           easing: Easing.linear 
         }),
         -1,
         false
       );
-    }, 500);
+    }, 2000); // 2 second delay before starting
     
     return () => {
       clearInterval(quoteTimer);
@@ -258,33 +258,46 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '800',
     color: '#FFFFFF',
-    marginBottom: 5,
+    marginBottom: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+    letterSpacing: 0.5,
   },
   scrollingContainer: {
-    height: 40,
+    height: 60,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 30,
     marginHorizontal: 20,
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
   },
   scrollingContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    minWidth: width * 2, // Ensure content is wide enough to scroll
+    paddingHorizontal: 25,
+    minWidth: width * 3, // Wider content for better scrolling
+    height: '100%',
   },
   quoteText: {
-    fontSize: 14,
+    fontSize: 18,
     fontStyle: 'italic',
-    fontWeight: '500',
+    fontWeight: '700',
     color: '#FFFFFF',
-    whiteSpace: 'nowrap',
+    textShadowColor: 'rgba(0, 0, 0, 1)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
+    lineHeight: 24,
   },
   separator: {
     color: '#666',

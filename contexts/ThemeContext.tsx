@@ -26,7 +26,7 @@ export const darkTheme: Theme = {
   cardBackground: 'rgba(255, 255, 255, 0.05)',
   textPrimary: '#ffffff',
   textSecondary: '#a1a1aa',
-  accent: '#3b82f6',
+  accent: '#000000',
   border: 'rgba(255, 255, 255, 0.1)',
   overlay: 'rgba(255, 255, 255, 0.05)',
 };

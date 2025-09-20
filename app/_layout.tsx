@@ -18,6 +18,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { MoodProvider } from '../contexts/MoodContext';
 import { UserProvider } from '../contexts/UserContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { CartProvider } from '../contexts/CartContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,17 +49,19 @@ export default function RootLayout() {
       <ThemeProvider>
         <UserProvider>
           <MoodProvider>
-        <Stack screenOptions={{ 
-          headerShown: false,
-          contentStyle: { backgroundColor: 'transparent' },
-          animation: 'slide_from_right',
-        }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="+not-found" />
-          <Stack.Screen name="mood-results" />
-        </Stack>
-        <StatusBar style="light" backgroundColor="transparent" translucent />
+            <CartProvider>
+              <Stack screenOptions={{ 
+                headerShown: false,
+                contentStyle: { backgroundColor: 'transparent' },
+                animation: 'slide_from_right',
+              }}>
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="+not-found" />
+                <Stack.Screen name="mood-results" />
+              </Stack>
+              <StatusBar style="light" backgroundColor="transparent" translucent />
+            </CartProvider>
           </MoodProvider>
         </UserProvider>
       </ThemeProvider>

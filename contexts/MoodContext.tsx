@@ -17,13 +17,15 @@ export interface FoodRecommendation {
   cookingTime: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   ingredients: string[];
+  price: number;
 }
 
 interface MoodContextType {
   currentMoodAnalysis: MoodAnalysis;
   setCurrentMoodAnalysis: (analysis: MoodAnalysis) => void;
   getFoodRecommendations: (mood: string) => FoodRecommendation[];
-  getMusicRecommendations: (mood: string, genre?: string) => any[];
+  getTherapeuticRecommendations: (mood: string) => any[];
+  getTherapeuticMood: (mood: string) => string;
   analyzeMoodFromSelection: (selectedMood: string) => void;
   isAnalyzing: boolean;
 }
@@ -49,32 +51,32 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
     likedCount: 0,
     timestamp: Date.now()
   });
-  
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // AI Mood Analysis Function
   const analyzeMoodFromSelection = async (selectedMood: string) => {
     setIsAnalyzing(true);
-    
+
     // Simulate AI analysis with realistic delay
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // AI analysis logic - mapping mood to therapeutic music genre
-    const moodToGenreMapping: { [key: string]: string } = {
-      'Happy': 'Pop',
-      'Sad': 'Ambient',      // Calming instead of Blues
-      'Romantic': 'R&B',
-      'Tired': 'Indie',      // Gentle energy instead of Ambient
-      'Excited': 'Electronic',
-      'Lonely': 'Acoustic',  // Soothing instead of Indie
-      'Hungry': 'Jazz',
-      'Moody': 'Classical',  // Calming instead of Alternative
-      'Angry': 'Nature'      // Added for therapeutic calming
+
+    // AI analysis logic - mapping mood to therapeutic approach
+    const moodToTherapyMapping: { [key: string]: string } = {
+      'Happy': 'Maintain positivity',
+      'Sad': 'Uplifting content',      // Therapeutic approach for sad mood
+      'Romantic': 'Romantic content',
+      'Tired': 'Energizing content',   // Help boost energy
+      'Excited': 'High-energy content',
+      'Lonely': 'Connection content',  // Help feel connected
+      'Hungry': 'Food inspiration',
+      'Moody': 'Mood-balancing content', // Help stabilize mood
+      'Angry': 'Calming content'       // Therapeutic calming for anger
     };
 
     const analysisResult: MoodAnalysis = {
       dominantMood: selectedMood,
-      dominantGenre: moodToGenreMapping[selectedMood] || 'Pop',
+      dominantGenre: moodToTherapyMapping[selectedMood] || 'Uplifting content',
       likedCount: Math.floor(Math.random() * 50) + 10, // Simulated engagement
       timestamp: Date.now()
     };
@@ -90,7 +92,7 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
   };
 
   const getFoodRecommendations = (mood?: string): FoodRecommendation[] => {
-    const originalMood = mood || currentMoodAnalysis.dominantMood;
+    const originalMood = mood || currentMoodAnalysis?.dominantMood || 'Happy';
     const therapeuticMood = getTherapeuticMood(originalMood);
 
     // Food database with real images from the project folder
@@ -102,10 +104,11 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
         description: 'Aromatic and flavorful celebration rice dish',
         mood: 'Happy',
         cuisine: 'Indian',
-        image: '../food images/(happy) Chicken-Dum-Biryani-785x1024-1.webp',
+        image: require('../assets/food-images/chicken-biryani.webp'),
         cookingTime: '60 min',
         difficulty: 'Medium',
-        ingredients: ['basmati rice', 'chicken', 'spices', 'saffron', 'yogurt']
+        ingredients: ['basmati rice', 'chicken', 'spices', 'saffron', 'yogurt'],
+        price: 450
       },
       {
         id: 'f2',
@@ -113,10 +116,11 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
         description: 'Classic Italian pizza to brighten your day',
         mood: 'Happy',
         cuisine: 'Italian',
-        image: '../food images/(happy) Margherita-Pizza-082.jpg',
+        image: require('../assets/food-images/margherita-pizza.jpg'),
         cookingTime: '30 min',
         difficulty: 'Medium',
-        ingredients: ['pizza dough', 'tomato sauce', 'mozzarella', 'basil']
+        ingredients: ['pizza dough', 'tomato sauce', 'mozzarella', 'basil'],
+        price: 320
       },
       {
         id: 'f3',
@@ -124,181 +128,201 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
         description: 'Delicious North Indian comfort food',
         mood: 'Happy',
         cuisine: 'Indian',
-        image: '../food images/(happy) chole-bhature-2.jpg',
+        image: require('../assets/food-images/chole-bhature.jpg'),
         cookingTime: '45 min',
         difficulty: 'Medium',
-        ingredients: ['chickpeas', 'flour', 'spices', 'onions', 'tomatoes']
+        ingredients: ['chickpeas', 'flour', 'spices', 'yogurt', 'onions'],
+        price: 280
       },
       {
         id: 'f4',
-        name: 'Crème Brûlée',
-        description: 'Elegant French dessert for special moments',
-        mood: 'Happy',
-        cuisine: 'French',
-        image: '../food images/(happy) creme-brulee-for-two-5.jpg',
-        cookingTime: '40 min',
-        difficulty: 'Hard',
-        ingredients: ['cream', 'egg yolks', 'sugar', 'vanilla']
-      },
-      {
-        id: 'f5',
         name: 'Fresh Sushi',
-        description: 'Light and refreshing Japanese delicacy',
+        description: 'Elegant and fresh Japanese delicacy',
         mood: 'Happy',
         cuisine: 'Japanese',
-        image: '../food images/(happy) sushi.jpg',
+        image: require('../assets/food-images/sushi.jpg'),
         cookingTime: '30 min',
         difficulty: 'Hard',
-        ingredients: ['sushi rice', 'nori', 'fresh fish', 'wasabi']
+        ingredients: ['sushi rice', 'fresh fish', 'nori', 'wasabi', 'soy sauce'],
+        price: 650
       },
 
-      // Calming foods for negative moods (therapeutic recommendations)
+      // Sad mood foods - comforting and warm (therapeutic approach)
       {
-        id: 'f6',
+        id: 'f5',
         name: 'French Onion Soup',
-        description: 'Warm, comforting soup to soothe your soul',
+        description: 'Warm and comforting classic soup',
         mood: 'Calming',
         cuisine: 'French',
-        image: '../food images/(sad) French-Onion-Soup-Recipe-1-1.jpg',
+        image: require('../assets/food-images/french-onion-soup.jpg'),
         cookingTime: '45 min',
         difficulty: 'Medium',
-        ingredients: ['onions', 'beef broth', 'gruyere cheese', 'herbs']
+        ingredients: ['onions', 'beef broth', 'cheese', 'bread', 'wine'],
+        price: 380
+      },
+      {
+        id: 'f6',
+        name: 'Creamy Risotto',
+        description: 'Rich and creamy Italian comfort food',
+        mood: 'Calming',
+        cuisine: 'Italian',
+        image: require('../assets/food-images/chicken-gnocchi.webp'),
+        cookingTime: '35 min',
+        difficulty: 'Medium',
+        ingredients: ['arborio rice', 'broth', 'parmesan', 'white wine', 'butter'],
+        price: 420
       },
       {
         id: 'f7',
         name: 'Tomato Rasam',
-        description: 'Healing South Indian soup with gentle spices',
+        description: 'Soothing South Indian soup',
         mood: 'Calming',
         cuisine: 'Indian',
-        image: '../food images/(sad) Tomato-Rasam.jpg',
+        image: require('../assets/food-images/tomato-rasam.jpg'),
         cookingTime: '25 min',
         difficulty: 'Easy',
-        ingredients: ['tomatoes', 'tamarind', 'turmeric', 'curry leaves']
+        ingredients: ['tomatoes', 'tamarind', 'spices', 'curry leaves', 'ghee'],
+        price: 180
       },
+
+      // Lonely mood foods - comforting and familiar (therapeutic)
       {
         id: 'f8',
-        name: 'Korean Bibimbap',
-        description: 'Balanced and nourishing Korean bowl',
+        name: 'Stuffed Paratha',
+        description: 'Comforting Indian flatbread with filling',
         mood: 'Calming',
-        cuisine: 'Korean',
-        image: '../food images/(sad) classic-korean-bibimbap.webp',
-        cookingTime: '35 min',
+        cuisine: 'Indian',
+        image: require('../assets/food-images/stuffed-paratha.jpg'),
+        cookingTime: '30 min',
         difficulty: 'Medium',
-        ingredients: ['rice', 'vegetables', 'egg', 'gochujang', 'sesame oil']
+        ingredients: ['flour', 'potatoes', 'spices', 'ghee', 'yogurt'],
+        price: 220
       },
       {
         id: 'f9',
-        name: 'Comfort Khichdi',
-        description: 'Simple, healing one-pot meal',
+        name: 'Dal Tadka',
+        description: 'Comforting lentil curry',
         mood: 'Calming',
         cuisine: 'Indian',
-        image: '../food images/(sad) kichdi.jpg',
+        image: require('../assets/food-images/dal-tadka.jpg'),
         cookingTime: '30 min',
         difficulty: 'Easy',
-        ingredients: ['rice', 'lentils', 'turmeric', 'ghee', 'ginger']
+        ingredients: ['lentils', 'spices', 'onions', 'tomatoes', 'ghee'],
+        price: 200
       },
       {
         id: 'f10',
-        name: 'Risotto alla Milanese',
-        description: 'Creamy, comforting Italian rice dish',
+        name: 'Chicken Gnocchi',
+        description: 'Hearty and comforting pasta dish',
         mood: 'Calming',
         cuisine: 'Italian',
-        image: '../food images/(sad) risotto-alla-milanese-recipe-snippet-3.jpg',
-        cookingTime: '40 min',
+        image: require('../assets/food-images/chicken-gnocchi.webp'),
+        cookingTime: '35 min',
         difficulty: 'Medium',
-        ingredients: ['arborio rice', 'saffron', 'parmesan', 'white wine']
+        ingredients: ['gnocchi', 'chicken', 'cream', 'vegetables', 'herbs'],
+        price: 480
       },
+
+      // Excited mood foods - vibrant and energizing
       {
         id: 'f11',
-        name: 'Dal Tadka',
-        description: 'Nourishing lentil curry for comfort',
-        mood: 'Calming',
-        cuisine: 'Indian',
-        image: '../food images/(lonely) Dal-Tadka-2.jpg',
-        cookingTime: '35 min',
+        name: 'Street Tacos',
+        description: 'Vibrant and flavorful Mexican street food',
+        mood: 'Excited',
+        cuisine: 'Mexican',
+        image: require('../assets/food-images/street-tacos.jpg'),
+        cookingTime: '25 min',
         difficulty: 'Easy',
-        ingredients: ['yellow lentils', 'onions', 'tomatoes', 'spices', 'ghee']
+        ingredients: ['tortillas', 'meat', 'onions', 'cilantro', 'lime'],
+        price: 350
       },
       {
         id: 'f12',
-        name: 'Chicken Gnocchi',
-        description: 'Hearty and comforting Italian comfort food',
-        mood: 'Calming',
-        cuisine: 'Italian',
-        image: '../food images/(lonely) chicken-gnocchi-skillet_web-10.webp',
-        cookingTime: '30 min',
-        difficulty: 'Medium',
-        ingredients: ['gnocchi', 'chicken', 'cream', 'spinach', 'herbs']
-      },
-
-      // Excited mood foods
-      {
-        id: 'f13',
-        name: 'Lasagna Bolognese',
-        description: 'Rich and hearty Italian classic',
+        name: 'Tandoori Chicken',
+        description: 'Spicy and aromatic grilled chicken',
         mood: 'Excited',
-        cuisine: 'Italian',
-        image: '../food images/(excited) Lasagna-Bolognese-scaled.jpg',
-        cookingTime: '90 min',
-        difficulty: 'Hard',
-        ingredients: ['pasta sheets', 'ground beef', 'tomato sauce', 'cheese']
-      },
-      {
-        id: 'f14',
-        name: 'Seafood Stew',
-        description: 'Exciting mix of fresh seafood',
-        mood: 'Excited',
-        cuisine: 'Mediterranean',
-        image: '../food images/(excited) Seafood-Stew_Matt_Taylor-Gross-scaled.webp',
+        cuisine: 'Indian',
+        image: require('../assets/food-images/tandoori-chicken.jpg'),
         cookingTime: '45 min',
         difficulty: 'Medium',
-        ingredients: ['mixed seafood', 'tomatoes', 'white wine', 'herbs']
+        ingredients: ['chicken', 'yogurt', 'spices', 'lemon', 'ginger'],
+        price: 420
       },
       {
-        id: 'f15',
+        id: 'f13',
         name: 'Pav Bhaji',
         description: 'Spicy and flavorful Mumbai street food',
         mood: 'Excited',
         cuisine: 'Indian',
-        image: '../food images/(excited) pav bhaji.jpg',
+        image: require('../assets/food-images/pav-bhaji.jpg'),
         cookingTime: '40 min',
         difficulty: 'Medium',
-        ingredients: ['mixed vegetables', 'pav bread', 'spices', 'butter']
+        ingredients: ['mixed vegetables', 'pav bread', 'spices', 'butter', 'onions'],
+        price: 280
+      },
+
+      // Moody foods - complex and satisfying
+      {
+        id: 'f14',
+        name: 'Ratatouille',
+        description: 'Rustic French vegetable stew',
+        mood: 'Moody',
+        cuisine: 'French',
+        image: require('../assets/food-images/ratatouille.jpg'),
+        cookingTime: '50 min',
+        difficulty: 'Medium',
+        ingredients: ['eggplant', 'zucchini', 'tomatoes', 'herbs', 'olive oil'],
+        price: 380
+      },
+      {
+        id: 'f15',
+        name: 'Paneer Butter Masala',
+        description: 'Rich and creamy Indian curry',
+        mood: 'Moody',
+        cuisine: 'Indian',
+        image: require('../assets/food-images/paneer-butter-masala.jpg'),
+        cookingTime: '35 min',
+        difficulty: 'Medium',
+        ingredients: ['paneer', 'tomatoes', 'cream', 'spices', 'butter'],
+        price: 350
       },
       {
         id: 'f16',
-        name: 'Street Tacos',
-        description: 'Vibrant and exciting Mexican street food',
-        mood: 'Excited',
-        cuisine: 'Mexican',
-        image: '../food images/(excited) street-tacos-recipe-2.jpg',
-        cookingTime: '25 min',
-        difficulty: 'Medium',
-        ingredients: ['corn tortillas', 'meat', 'onions', 'cilantro', 'lime']
+        name: 'Veg Pulao',
+        description: 'Aromatic rice dish with vegetables',
+        mood: 'Moody',
+        cuisine: 'Indian',
+        image: require('../assets/food-images/veg-pulao.jpg'),
+        cookingTime: '30 min',
+        difficulty: 'Easy',
+        ingredients: ['basmati rice', 'mixed vegetables', 'spices', 'ghee'],
+        price: 250
       },
 
       // Romantic mood foods
       {
         id: 'f17',
         name: 'Chicken Alfredo',
-        description: 'Creamy and romantic pasta dish',
+        description: 'Creamy and elegant pasta dish',
         mood: 'Romantic',
         cuisine: 'Italian',
-        image: '../food images/(romantic) chicken-alfredo-1.jpg',
-        cookingTime: '30 min',
+        image: require('../assets/food-images/chicken-alfredo.jpg'),
+        cookingTime: '25 min',
         difficulty: 'Medium',
-        ingredients: ['fettuccine', 'chicken', 'cream', 'parmesan', 'garlic']
+        ingredients: ['pasta', 'chicken', 'cream', 'parmesan', 'garlic'],
+        price: 450
       },
       {
         id: 'f18',
-        name: 'Baklava',
-        description: 'Sweet and delicate Middle Eastern dessert',
+        name: 'Paneer Tikka Masala',
+        description: 'Rich and creamy Indian curry',
         mood: 'Romantic',
-        cuisine: 'Middle Eastern',
-        image: '../food images/(romantic) Baklava.jpg',
-        cookingTime: '60 min',
-        difficulty: 'Hard',
-        ingredients: ['phyllo pastry', 'nuts', 'honey', 'butter', 'cinnamon']
+        cuisine: 'Indian',
+        image: require('../assets/food-images/paneer-tikka-masala.webp'),
+        cookingTime: '35 min',
+        difficulty: 'Medium',
+        ingredients: ['paneer', 'tomatoes', 'cream', 'spices', 'onions'],
+        price: 380
       },
       {
         id: 'f19',
@@ -306,10 +330,11 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
         description: 'Aromatic Indian bread perfect for sharing',
         mood: 'Romantic',
         cuisine: 'Indian',
-        image: '../food images/(romantic) garlic naan.jpg',
+        image: require('../assets/food-images/garlic-naan.jpg'),
         cookingTime: '20 min',
         difficulty: 'Medium',
-        ingredients: ['flour', 'yogurt', 'garlic', 'butter', 'herbs']
+        ingredients: ['flour', 'yogurt', 'garlic', 'butter', 'herbs'],
+        price: 120
       },
 
       // Tired mood foods - energizing but gentle
@@ -319,10 +344,11 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
         description: 'Light and energizing South Indian breakfast',
         mood: 'Tired',
         cuisine: 'Indian',
-        image: '../food images/(tired)  upma .jpg',
+        image: require('../assets/food-images/upma.jpg'),
         cookingTime: '20 min',
         difficulty: 'Easy',
-        ingredients: ['semolina', 'vegetables', 'mustard seeds', 'curry leaves']
+        ingredients: ['semolina', 'vegetables', 'mustard seeds', 'curry leaves'],
+        price: 150
       },
       {
         id: 'f21',
@@ -330,10 +356,11 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
         description: 'Nourishing vegetable soup for energy',
         mood: 'Tired',
         cuisine: 'Italian',
-        image: '../food images/(tired) Homemade-Minestrone-Soup.webp',
+        image: require('../assets/food-images/minestrone-soup.webp'),
         cookingTime: '35 min',
         difficulty: 'Easy',
-        ingredients: ['mixed vegetables', 'beans', 'pasta', 'herbs', 'broth']
+        ingredients: ['mixed vegetables', 'beans', 'pasta', 'herbs', 'broth'],
+        price: 280
       },
       {
         id: 'f22',
@@ -341,156 +368,157 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
         description: 'Aromatic and energizing Thai curry',
         mood: 'Tired',
         cuisine: 'Thai',
-        image: '../food images/(tired) Thai-Green-Curry.jpg',
+        image: require('../assets/food-images/thai-green-curry.jpg'),
         cookingTime: '30 min',
         difficulty: 'Medium',
-        ingredients: ['green curry paste', 'coconut milk', 'vegetables', 'basil']
+        ingredients: ['green curry paste', 'coconut milk', 'vegetables', 'basil'],
+        price: 420
       }
     ];
 
-    return foodDatabase.filter(food => 
-      food.mood === therapeuticMood || therapeuticMood === 'Balanced'
-    ).slice(0, 6);
+    // Filter foods based on therapeutic mood, with fallbacks
+    let filteredFoods = foodDatabase.filter(food =>
+      food.mood === therapeuticMood
+    );
+
+    // If no foods found for therapeutic mood, try original mood
+    if (filteredFoods.length === 0) {
+      filteredFoods = foodDatabase.filter(food =>
+        food.mood === originalMood
+      );
+    }
+
+    // If still no foods found, return Happy mood foods as default
+    if (filteredFoods.length === 0) {
+      filteredFoods = foodDatabase.filter(food =>
+        food.mood === 'Happy'
+      );
+    }
+
+    // If still no foods, return all foods
+    if (filteredFoods.length === 0) {
+      filteredFoods = foodDatabase;
+    }
+
+    return filteredFoods.slice(0, 6);
   };
 
-  const getMusicRecommendations = (mood?: string, genre?: string): any[] => {
+  const getTherapeuticRecommendations = (mood?: string): any[] => {
+    if (!currentMoodAnalysis) return [];
     const originalMood = mood || currentMoodAnalysis.dominantMood;
     const therapeuticMood = getTherapeuticMood(originalMood);
-    const targetGenre = genre || currentMoodAnalysis.dominantGenre;
 
-    // Therapeutic music database with calming recommendations for negative moods
-    const musicDatabase = [
-      // Happy mood music - keep uplifting for positive moods
+    // Therapeutic content database focusing on food and wellness
+    const therapeuticDatabase = [
+      // Happy mood - maintain positivity with celebration foods
       {
-        id: 'm1',
-        title: 'Happy Hits',
-        artist: 'Pop Stars',
-        genre: 'Pop',
+        id: 't1',
+        title: 'Celebration Feast',
+        type: 'food',
         mood: 'Happy',
-        description: 'Uplifting songs to brighten your day',
-        songs: ['Good as Hell - Lizzo', 'Happy - Pharrell Williams', 'Can\'t Stop the Feeling - Justin Timberlake']
-      },
-      {
-        id: 'm2',
-        title: 'Feel Good Classics',
-        artist: 'Various Artists',
-        genre: 'Pop',
-        mood: 'Happy',
-        description: 'Timeless feel-good anthems',
-        songs: ['Walking on Sunshine - Katrina & The Waves', 'I Want It That Way - Backstreet Boys', 'Mr. Blue Sky - ELO']
+        description: 'Colorful, festive dishes to celebrate your joy',
+        image: '🎉',
+        benefit: 'Maintains positive energy and social connection',
+        dishes: ['Chicken Biryani', 'Margherita Pizza', 'Fresh Sushi', 'Chocolate Cake'],
+        tags: ['celebration', 'colorful', 'social']
       },
 
-      // Calming music for negative moods (therapeutic recommendations)
+      // Sad mood - uplifting comfort foods (therapeutic approach)
       {
-        id: 'm3',
-        title: 'Peaceful Mind',
-        artist: 'Meditation Masters',
-        genre: 'Ambient',
-        mood: 'Calming',
-        description: 'Gentle sounds to calm your mind and soothe your soul',
-        songs: ['Weightless - Marconi Union', 'Aqueous Transmission - Incubus', 'Spiegel im Spiegel - Arvo Pärt']
-      },
-      {
-        id: 'm4',
-        title: 'Healing Frequencies',
-        artist: 'Nature Sounds Collective',
-        genre: 'Nature',
-        mood: 'Calming',
-        description: 'Natural sounds and healing frequencies for emotional balance',
-        songs: ['Rain on Leaves', 'Ocean Waves at Dawn', 'Forest Birds Symphony']
-      },
-      {
-        id: 'm5',
-        title: 'Gentle Acoustic',
-        artist: 'Acoustic Therapy',
-        genre: 'Acoustic',
-        mood: 'Calming',
-        description: 'Soft acoustic melodies to ease tension and bring peace',
-        songs: ['Mad World - Gary Jules', 'The Night We Met - Lord Huron', 'Holocene - Bon Iver']
-      },
-      {
-        id: 'm6',
-        title: 'Classical Comfort',
-        artist: 'Classical Ensemble',
-        genre: 'Classical',
-        mood: 'Calming',
-        description: 'Soothing classical pieces for emotional healing',
-        songs: ['Clair de Lune - Debussy', 'Gymnopédie No. 1 - Satie', 'Adagio for Strings - Barber']
-      },
-      {
-        id: 'm7',
-        title: 'Lo-Fi Healing',
-        artist: 'ChilledCow',
-        genre: 'Lo-Fi',
-        mood: 'Calming',
-        description: 'Mellow lo-fi beats to help you relax and reset',
-        songs: ['Study Session', 'Rainy Day Vibes', 'Midnight Coffee']
+        id: 't2',
+        title: 'Comfort & Warmth',
+        type: 'food',
+        mood: 'Sad',
+        description: 'Warm, comforting dishes to lift your spirits',
+        image: '🍲',
+        benefit: 'Provides comfort and helps improve mood',
+        dishes: ['French Onion Soup', 'Creamy Risotto', 'Hot Chocolate', 'Tomato Rasam'],
+        tags: ['comfort', 'warm', 'nurturing']
       },
 
-      // Excited mood music
+      // Lonely mood - connection-focused foods (therapeutic)
       {
-        id: 'm8',
-        title: 'High Energy Mix',
-        artist: 'Electronic Collective',
-        genre: 'Electronic',
-        mood: 'Excited',
-        description: 'Energetic beats to match your excitement',
-        songs: ['Levels - Avicii', 'Titanium - David Guetta', 'Animals - Martin Garrix']
-      },
-      {
-        id: 'm9',
-        title: 'Rock Anthems',
-        artist: 'Rock Legends',
-        genre: 'Rock',
-        mood: 'Excited',
-        description: 'Powerful rock songs for high energy moments',
-        songs: ['Don\'t Stop Believin\' - Journey', 'We Will Rock You - Queen', 'Eye of the Tiger - Survivor']
+        id: 't3',
+        title: 'Cozy Connection',
+        type: 'food',
+        mood: 'Lonely',
+        description: 'Comforting treats that make you feel less alone',
+        image: '🤗',
+        benefit: 'Creates feelings of warmth and connection',
+        dishes: ['Chicken Gnocchi', 'Dal Tadka', 'Stuffed Paratha', 'Falafel Wrap'],
+        tags: ['cozy', 'comforting', 'familiar']
       },
 
-      // Romantic mood music
+      // Tired mood - energizing foods (therapeutic)
       {
-        id: 'm10',
-        title: 'Love Ballads',
-        artist: 'Romance Collection',
-        genre: 'R&B',
-        mood: 'Romantic',
-        description: 'Smooth and romantic songs for intimate moments',
-        songs: ['All of Me - John Legend', 'Perfect - Ed Sheeran', 'At Last - Etta James']
-      },
-      {
-        id: 'm11',
-        title: 'Jazz Romance',
-        artist: 'Jazz Ensemble',
-        genre: 'Jazz',
-        mood: 'Romantic',
-        description: 'Sultry jazz for romantic evenings',
-        songs: ['The Way You Look Tonight - Frank Sinatra', 'Fly Me to the Moon - Norah Jones', 'La Vie En Rose - Édith Piaf']
-      },
-
-      // Tired mood music - gentle and energizing
-      {
-        id: 'm12',
-        title: 'Gentle Energy',
-        artist: 'Morning Collective',
-        genre: 'Indie',
+        id: 't4',
+        title: 'Energy Revival',
+        type: 'food',
         mood: 'Tired',
-        description: 'Soft but uplifting music to gently energize',
-        songs: ['Here Comes the Sun - The Beatles', 'Three Little Birds - Bob Marley', 'Good Morning - Kanye West']
+        description: 'Quick, energizing foods to boost your vitality',
+        image: '⚡',
+        benefit: 'Provides sustained energy and mental clarity',
+        dishes: ['Thai Green Curry', 'Lemon Rice', 'Upma', 'Quiche Lorraine'],
+        tags: ['energizing', 'quick', 'nutritious']
       },
+
+      // Excited mood - high-energy foods
       {
-        id: 'm13',
-        title: 'Acoustic Revival',
-        artist: 'Folk Revival',
-        genre: 'Folk',
-        mood: 'Tired',
-        description: 'Gentle acoustic songs to lift your spirits',
-        songs: ['Ho Hey - The Lumineers', 'Home - Edward Sharpe', 'I Will Follow You into the Dark - Death Cab']
+        id: 't5',
+        title: 'Power Fuel',
+        type: 'food',
+        mood: 'Excited',
+        description: 'High-energy foods to match your enthusiasm',
+        image: '🔥',
+        benefit: 'Sustains high energy and excitement levels',
+        dishes: ['Lasagna Bolognese', 'Street Tacos', 'Pav Bhaji', 'Tandoori Chicken'],
+        tags: ['high-energy', 'protein', 'spicy']
+      },
+
+      // Romantic mood - intimate dining
+      {
+        id: 't6',
+        title: 'Romantic Dining',
+        type: 'food',
+        mood: 'Romantic',
+        description: 'Elegant dishes perfect for romantic moments',
+        image: '💕',
+        benefit: 'Enhances romantic atmosphere and connection',
+        dishes: ['Chicken Alfredo', 'Paneer Tikka Masala', 'Garlic Naan', 'Baklava'],
+        tags: ['elegant', 'intimate', 'sophisticated']
+      },
+
+      // Hungry mood - satisfying meals
+      {
+        id: 't7',
+        title: 'Hearty Satisfaction',
+        type: 'food',
+        mood: 'Hungry',
+        description: 'Filling, satisfying meals to curb your hunger',
+        image: '🍽️',
+        benefit: 'Provides complete satisfaction and nourishment',
+        dishes: ['Cheese Burger', 'Penne Arrabbiata', 'Rajma Masala', 'Beef Bourguignon'],
+        tags: ['hearty', 'filling', 'satisfying']
+      },
+
+      // Moody mood - mood-balancing foods (therapeutic)
+      {
+        id: 't8',
+        title: 'Mood Balance',
+        type: 'food',
+        mood: 'Moody',
+        description: 'Foods that help stabilize and improve your mood',
+        image: '🎭',
+        benefit: 'Helps balance emotions and stabilize mood',
+        dishes: ['Ratatouille', 'Paneer Butter Masala', 'Spaghetti', 'Veg Pulao'],
+        tags: ['mood-boosting', 'nutritious', 'balancing']
       }
+
     ];
 
-    return musicDatabase.filter(music => 
-      music.mood === therapeuticMood || music.genre === targetGenre
-    );
+    return therapeuticDatabase.filter(content =>
+      content.mood === therapeuticMood || therapeuticMood === 'Happy'
+    ).slice(0, 6);
   };
 
   return (
@@ -498,7 +526,8 @@ export const MoodProvider: React.FC<MoodProviderProps> = ({ children }) => {
       currentMoodAnalysis,
       setCurrentMoodAnalysis,
       getFoodRecommendations,
-      getMusicRecommendations,
+      getTherapeuticRecommendations,
+      getTherapeuticMood,
       analyzeMoodFromSelection,
       isAnalyzing
     }}>

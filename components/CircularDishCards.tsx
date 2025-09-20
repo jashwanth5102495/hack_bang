@@ -1,18 +1,19 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, ScrollView, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withRepeat, 
-  withTiming, 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
   interpolate,
-  FadeInDown,
-  runOnJS
+  FadeInDown
 } from 'react-native-reanimated';
 import { ChefHat, ShoppingCart } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { useMood } from '../contexts/MoodContext';
+import { initiatePayment, trackOrder } from './RazorpayPayment';
+import FoodActionPopup from './FoodActionPopup';
 
-const { width } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 const CARD_WIDTH = 160;
 const CARD_HEIGHT = 200;
 
@@ -23,155 +24,225 @@ interface DishCard {
   cuisine: string;
   cookingTime: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
-  gradient: string[];
+  image: any;
 }
 
-const dishCards: DishCard[] = [
-  {
-    id: '1',
-    name: 'Spicy Ramen',
-    emoji: '🍜',
-    cuisine: 'Japanese',
-    cookingTime: '25 min',
-    difficulty: 'Medium',
-    gradient: ['#1a1a1a', '#2a2a2a']
-  },
-  {
-    id: '2',
-    name: 'Margherita Pizza',
-    emoji: '🍕',
-    cuisine: 'Italian',
-    cookingTime: '30 min',
-    difficulty: 'Easy',
-    gradient: ['#1a1a1a', '#2a2a2a']
-  },
-  {
-    id: '3',
-    name: 'Sushi Platter',
-    emoji: '🍣',
-    cuisine: 'Japanese',
-    cookingTime: '45 min',
-    difficulty: 'Hard',
-    gradient: ['#1a1a1a', '#2a2a2a']
-  },
-  {
-    id: '4',
-    name: 'Tacos Al Pastor',
-    emoji: '🌮',
-    cuisine: 'Mexican',
-    cookingTime: '20 min',
-    difficulty: 'Easy',
-    gradient: ['#1a1a1a', '#2a2a2a']
-  },
-  {
-    id: '5',
-    name: 'Pad Thai',
-    emoji: '🍝',
-    cuisine: 'Thai',
-    cookingTime: '35 min',
-    difficulty: 'Medium',
-    gradient: ['#1a1a1a', '#2a2a2a']
-  },
-  {
-    id: '6',
-    name: 'Burger Deluxe',
-    emoji: '🍔',
-    cuisine: 'American',
-    cookingTime: '15 min',
-    difficulty: 'Easy',
-    gradient: ['#1a1a1a', '#2a2a2a']
-  },
-  {
-    id: '7',
-    name: 'Curry Bowl',
-    emoji: '🍛',
-    cuisine: 'Indian',
-    cookingTime: '40 min',
-    difficulty: 'Medium',
-    gradient: ['#1a1a1a', '#2a2a2a']
-  },
-  {
-    id: '8',
-    name: 'Croissant',
-    emoji: '🥐',
-    cuisine: 'French',
-    cookingTime: '60 min',
-    difficulty: 'Hard',
-    gradient: ['#1a1a1a', '#2a2a2a']
-  }
-];
+// Mood-based dish recommendations with local images
+const getMoodBasedDishes = (mood: string): DishCard[] => {
+  const dishDatabase: { [key: string]: DishCard[] } = {
+    'Happy': [
+      {
+        id: 'h1',
+        name: 'Chicken Biryani',
+        emoji: '🍛',
+        cuisine: 'Indian',
+        cookingTime: '60 min',
+        difficulty: 'Medium',
+        image: require('../assets/food-images/chicken-biryani.webp')
+      },
+      {
+        id: 'h2',
+        name: 'Margherita Pizza',
+        emoji: '🍕',
+        cuisine: 'Italian',
+        cookingTime: '30 min',
+        difficulty: 'Medium',
+        image: require('../assets/food-images/margherita-pizza.jpg')
+      },
+      {
+        id: 'h3',
+        name: 'Sushi Platter',
+        emoji: '🍣',
+        cuisine: 'Japanese',
+        cookingTime: '45 min',
+        difficulty: 'Hard',
+        image: require('../assets/food-images/sushi.jpg')
+      },
+      {
+        id: 'h4',
+        name: 'Chole Bhature',
+        emoji: '🍛',
+        cuisine: 'Indian',
+        cookingTime: '45 min',
+        difficulty: 'Medium',
+        image: require('../assets/food-images/chole-bhature.jpg')
+      }
+    ],
+    'Sad': [
+      {
+        id: 's1',
+        name: 'French Onion Soup',
+        emoji: '🍲',
+        cuisine: 'French',
+        cookingTime: '45 min',
+        difficulty: 'Medium',
+        image: require('../assets/food-images/french-onion-soup.jpg')
+      },
+      {
+        id: 's2',
+        name: 'Tomato Rasam',
+        emoji: '�',
+        cuisine: 'Indian',
+        cookingTime: '25 min',
+        difficulty: 'Easy',
+        image: require('../assets/food-images/tomato-rasam.jpg')
+      }
+    ],
+    'Excited': [
+      {
+        id: 'e1',
+        name: 'Spicy Tacos',
+        emoji: '🌮',
+        cuisine: 'Mexican',
+        cookingTime: '25 min',
+        difficulty: 'Easy',
+        image: require('../assets/food-images/street-tacos.jpg')
+      },
+      {
+        id: 'e2',
+        name: 'Pav Bhaji',
+        emoji: '�',
+        cuisine: 'Indian',
+        cookingTime: '30 min',
+        difficulty: 'Medium',
+        image: require('../assets/food-images/pav-bhaji.jpg')
+      }
+    ],
+    'Lonely': [
+      {
+        id: 'l1',
+        name: 'Warm Soup',
+        emoji: '🍲',
+        cuisine: 'Comfort',
+        cookingTime: '30 min',
+        difficulty: 'Easy',
+        image: { uri: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&h=300&fit=crop' }
+      }
+    ],
+    'Romantic': [
+      {
+        id: 'r1',
+        name: 'Pasta Alfredo',
+        emoji: '🍝',
+        cuisine: 'Italian',
+        cookingTime: '35 min',
+        difficulty: 'Medium',
+        image: { uri: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400&h=300&fit=crop' }
+      }
+    ],
+    'Tired': [
+      {
+        id: 't1',
+        name: 'Simple Salad',
+        emoji: '🥗',
+        cuisine: 'Healthy',
+        cookingTime: '10 min',
+        difficulty: 'Easy',
+        image: { uri: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop' }
+      }
+    ],
+    'Moody': [
+      {
+        id: 'm1',
+        name: 'Comfort Food',
+        emoji: '🍛',
+        cuisine: 'Comfort',
+        cookingTime: '40 min',
+        difficulty: 'Medium',
+        image: { uri: 'https://images.unsplash.com/photo-1563379091339-03246963d51a?w=400&h=300&fit=crop' }
+      }
+    ]
+  };
+
+  const moodKey = mood.charAt(0).toUpperCase() + mood.slice(1).toLowerCase();
+  return dishDatabase[moodKey] || dishDatabase['Happy'];
+};
 
 interface CircularDishCardsProps {
-  onDishSelect: (dish: DishCard) => void;
+  onDishSelect?: (dish: DishCard) => void;
 }
 
 export default function CircularDishCards({ onDishSelect }: CircularDishCardsProps) {
+  // Use onDishSelect if provided
+  const handleDishSelection = onDishSelect || (() => { });
   const scrollViewRef = useRef<ScrollView>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedDish, setSelectedDish] = useState<DishCard | null>(null);
   const scrollX = useSharedValue(0);
+  const { currentMoodAnalysis } = useMood();
 
-  // Create extended array for infinite scroll
+  const currentMood = currentMoodAnalysis?.dominantMood || 'Happy';
+  const dishCards = getMoodBasedDishes(currentMood);
+
+  // Create extended array for infinite scroll effect
   const extendedDishes = [...dishCards, ...dishCards, ...dishCards];
-  const totalWidth = CARD_WIDTH * dishCards.length;
 
   useEffect(() => {
-    const autoScroll = () => {
+    const timer = setInterval(() => {
       if (scrollViewRef.current) {
-        const nextIndex = currentIndex + 1;
-        const scrollToX = nextIndex * (CARD_WIDTH + 16); // Include margin
-        
+        const nextIndex = (currentIndex + 1) % dishCards.length;
+        const scrollToX = nextIndex * (CARD_WIDTH + 16);
+
         scrollViewRef.current.scrollTo({
           x: scrollToX,
           animated: true,
         });
-        
-        // Reset to beginning when reaching the end of first set
-        if (nextIndex >= dishCards.length) {
-          setTimeout(() => {
-            if (scrollViewRef.current) {
-              scrollViewRef.current.scrollTo({
-                x: 0,
-                animated: false,
-              });
-              setCurrentIndex(0);
-            }
-          }, 500);
-        } else {
-          setCurrentIndex(nextIndex);
-        }
-      }
-    };
 
-    const interval = setInterval(autoScroll, 3000); // Auto-scroll every 3 seconds
-    return () => clearInterval(interval);
+        setCurrentIndex(nextIndex);
+      }
+    }, 4000);
+
+    return () => clearInterval(timer);
   }, [currentIndex]);
 
   const handleDishPress = (dish: DishCard) => {
-    Alert.alert(
-      dish.name,
-      `${dish.cuisine} • ${dish.cookingTime} • ${dish.difficulty}`,
-      [
-        {
-          text: '👨‍🍳 Cook',
-          onPress: () => {
-            Alert.alert('Cook Mode', `Let's cook ${dish.name}! Recipe coming soon...`);
-          }
-        },
-        {
-          text: '🛒 Order',
-          onPress: () => {
-            Alert.alert('Order Mode', `Ordering ${dish.name} from nearby restaurants...`);
-          }
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel'
-        }
-      ]
-    );
+    handleDishSelection(dish);
+    setSelectedDish(dish);
+    setShowPopup(true);
   };
 
-  const renderDishCard = (dish: DishCard, index: number) => {
+  const handleCook = () => {
+    setShowPopup(false);
+    router.push('/cook-dishes');
+  };
+
+  const handleOrder = () => {
+    setShowPopup(false);
+    router.push('/order-dishes');
+  };
+
+  const orderDish = async (dish: DishCard) => {
+    const orderAmount = Math.floor(Math.random() * 500) + 200;
+
+    try {
+      const orderDetails = {
+        dishName: dish.name,
+        price: orderAmount,
+        cuisine: dish.cuisine,
+        cookingTime: dish.cookingTime
+      };
+
+      const result = await initiatePayment(orderDetails);
+
+      if (result.success) {
+        const orderId = result.orderId || `ORD${Date.now()}`;
+        const tracking = trackOrder(orderId);
+
+        Alert.alert(
+          'Order Placed Successfully! 🎉',
+          `Order ID: ${orderId}\nAmount: ₹${orderAmount}\n\nStatus: ${tracking.status}\nEstimated Delivery: ${tracking.estimatedDeliveryTime}`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('Payment Failed', 'Please try again or contact support.', [{ text: 'OK' }]);
+      }
+    } catch (error) {
+      Alert.alert('Payment Error', 'Unable to process payment. Please try again.', [{ text: 'OK' }]);
+    }
+  };
+
+  const DishCardItem = ({ dish, index }: { dish: DishCard; index: number }) => {
     const animatedStyle = useAnimatedStyle(() => {
       const inputRange = [
         (index - 1) * CARD_WIDTH,
@@ -209,20 +280,30 @@ export default function CircularDishCards({ onDishSelect }: CircularDishCardsPro
           onPress={() => handleDishPress(dish)}
           activeOpacity={0.8}
         >
-          <View style={styles.cardGradient}>
-            <View style={styles.foodImageContainer}>
-              <Text style={styles.dishEmoji}>{dish.emoji}</Text>
-              <View style={styles.foodImageOverlay} />
-            </View>
+          <Image
+            source={dish.image}
+            style={styles.dishImage}
+            resizeMode="cover"
+            onError={(error) => {
+              console.log('Image loading error for', dish.name, ':', error.nativeEvent.error);
+            }}
+            defaultSource={{ uri: 'https://via.placeholder.com/400x300/1f2937/ffffff?text=Food' }}
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.8)']}
+            style={styles.imageOverlay}
+          >
             <View style={styles.cardContent}>
               <Text style={styles.dishName}>{dish.name}</Text>
               <Text style={styles.dishCuisine}>{dish.cuisine}</Text>
-              
+
               <View style={styles.dishInfo}>
                 <Text style={styles.dishTime}>{dish.cookingTime}</Text>
-                <View style={[styles.difficultyBadge, 
-                  { backgroundColor: dish.difficulty === 'Easy' ? '#10b981' : 
-                    dish.difficulty === 'Medium' ? '#f59e0b' : '#ef4444' }
+                <View style={[styles.difficultyBadge,
+                {
+                  backgroundColor: dish.difficulty === 'Easy' ? '#10b981' :
+                    dish.difficulty === 'Medium' ? '#f59e0b' : '#ef4444'
+                }
                 ]}>
                   <Text style={styles.difficultyText}>{dish.difficulty}</Text>
                 </View>
@@ -233,20 +314,20 @@ export default function CircularDishCards({ onDishSelect }: CircularDishCardsPro
                 <ShoppingCart size={16} color="#ffffff80" />
               </View>
             </View>
-          </View>
+          </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
     );
   };
 
   return (
-    <Animated.View 
+    <Animated.View
       entering={FadeInDown.delay(1000).springify()}
       style={styles.container}
     >
       <Text style={styles.sectionTitle}>Dishes to be tried</Text>
       <Text style={styles.sectionSubtitle}>Tap to cook or order</Text>
-      
+
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -264,8 +345,18 @@ export default function CircularDishCards({ onDishSelect }: CircularDishCardsPro
           setCurrentIndex(index % dishCards.length);
         }}
       >
-        {extendedDishes.map((dish, index) => renderDishCard(dish, index))}
+        {extendedDishes.map((dish, index) => (
+          <DishCardItem key={`${dish.id}-${index}`} dish={dish} index={index} />
+        ))}
       </ScrollView>
+
+      <FoodActionPopup
+        visible={showPopup}
+        onClose={() => setShowPopup(false)}
+        onCook={handleCook}
+        onOrder={handleOrder}
+        dishName={selectedDish?.name}
+      />
     </Animated.View>
   );
 }
@@ -289,72 +380,62 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingHorizontal: 20,
-    paddingRight: 20,
+    gap: 16,
   },
   cardContainer: {
     width: CARD_WIDTH,
-    marginRight: 16,
-  },
-  dishCard: {
-    width: '100%',
     height: CARD_HEIGHT,
     borderRadius: 20,
     overflow: 'hidden',
   },
-  cardGradient: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 20,
-    overflow: 'hidden',
+  dishCard: {
+    width: '100%',
+    height: '100%',
   },
-  foodImageContainer: {
-    height: 120,
-    backgroundColor: '#2a2a2a',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  dishEmoji: {
-    fontSize: 48,
-    zIndex: 2,
-  },
-  foodImageOverlay: {
+  dishImage: {
+    width: '100%',
+    height: '100%',
     position: 'absolute',
-    top: 0,
+  },
+  imageOverlay: {
+    position: 'absolute',
+    bottom: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    zIndex: 1,
+    height: '60%',
+    justifyContent: 'flex-end',
   },
   cardContent: {
     padding: 16,
-    flex: 1,
-    justifyContent: 'space-between',
   },
   dishName: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#ffffff',
-    textAlign: 'center',
     marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   dishCuisine: {
     fontSize: 12,
-    color: '#ffffff80',
-    textAlign: 'center',
+    color: '#ffffff',
+    opacity: 0.9,
     marginBottom: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   dishInfo: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    width: '100%',
+    alignItems: 'center',
     marginBottom: 8,
   },
   dishTime: {
-    fontSize: 11,
-    color: '#ffffff80',
+    fontSize: 10,
+    color: '#ffffff',
+    opacity: 0.8,
   },
   difficultyBadge: {
     paddingHorizontal: 6,
@@ -362,13 +443,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   difficultyText: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#ffffff',
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   actionHint: {
     flexDirection: 'row',
+    justifyContent: 'center',
     gap: 8,
-    opacity: 0.6,
+    marginTop: 4,
   },
 });
